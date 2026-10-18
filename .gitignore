@@ -1,0 +1,42 @@
+# Python and notebook working state
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+.pytest_cache/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Training data, logs, and checkpoints
+/data/
+/checkpoints/
+/logs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.pickle
+*.pkl
+*.npy
+*.npz
+STScI-01GQQF9WVPFVMCVHRZY54N2TAR.png
+
+# Generated videos; publish selected assets separately
+video_out/
+*.mp4
+*.mov
+*.avi
+*.webm
+
+# Manuscript build intermediates
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
