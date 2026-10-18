@@ -1,0 +1,49 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[pagenumbers]{cvpr}
+\usepackage{microtype}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,calc}
+\definecolor{linkblue}{RGB}{28,79,124}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=linkblue]{hyperref}
+\hypersetup{pdftitle={Regenerative Autoencoders: Learning Spatial Structure in a Single Astronomical Image},pdfauthor={Alejandro Hernandez Ruiz}}
+\hfuzz=0pt
+\vfuzz=0pt
+\hbadness=1000
+\vbadness=1000
+
+\title{Regenerative Autoencoders:\\Learning Spatial Structure in a Single Astronomical Image}
+\author{Alejandro Hernandez Ruiz\\
+  {\small First draft, version 0.1 --- October 18, 2026}}
+
+\begin{document}
+% Explicit English hyphenation minima for portable TeX formats.
+\lefthyphenmin=2
+\righthyphenmin=3
+\maketitle
+
+\begin{abstract}
+Learning the appearance of small image patches does not determine how those patches are arranged. We investigate this distinction with Regenerative Autoencoders (ReGAE), a two-level architecture trained on a single large astronomical image. A patch encoder and conditional denoising decoder first learn local appearance. A second denoiser, called the Gencoder, uses the same architecture family to predict spatial windows of patch representations. Its target is encoded on a fractionally displaced image grid, so prediction changes the pixel support of every latent location rather than merely extending a border. Recurrent evaluation on overlapping windows provides a mechanism for generating and traversing larger image regions without global coordinate conditioning. We describe an implementation using $32\times32$ RGB patches, 256-dimensional codes, and $32\times32$ latent windows, corresponding to approximately megapixel image regions. The case study uses a 236.8-megapixel James Webb Space Telescope mosaic of Pandora's Cluster. Archived training traces support optimization of both stages; historical qualitative observations motivate a discussion of coherent structure, noisy rendering, and transitions between visually ambiguous regions. We relate the construction to diffusion autoencoders, denoising dynamics, and hierarchical compression, while distinguishing these connections from established score-model or continuous-time equivalences. This exploratory report documents the architecture and existing evidence without adding new experiments.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/method}
+\input{sections/evidence}
+\input{sections/discussion}
+
+\section{Conclusion}
+ReGAE separates learning local appearance from learning the spatial organization of the resulting representations. Its central mechanism is a denoising predictor over spatial latent windows whose targets correspond to fractionally displaced image patches. Reusing the denoiser architecture across levels supports a simple hierarchical construction, and overlapping recurrent sampling turns the learned transition into a procedure for image generation and traversal. The archived implementation and training traces establish a concrete starting point for studying this construction. Its reported long-range visual behavior remains qualitative, and neither faithful navigation nor stable recurrence follows from the one-step objectives alone. The broader opportunity is to study how reusable reconstruction operators can organize information at successively larger scales, with explicit attention to the distinction between reconstructing stored structure and generating plausible alternatives.
+
+\paragraph{Data and code.}
+The original notebooks and manuscript sources are available in the \href{https://github.com/magnux/neural_pandoras_cluster}{Neural Pandora's Cluster repository}. The source image is credited to NASA, ESA, CSA, Ivo Labbe (Swinburne), and Rachel Bezanson (University of Pittsburgh), with image processing by Alyssa Pagan (STScI)~\cite{webb}. The experiments use the rendered image as a visual learning problem; generated outputs are not astronomical observations.
+
+{\small
+\bibliographystyle{ieeenat_fullname}
+\bibliography{references}
+}
+
+\clearpage
+\appendix
+\input{sections/appendix}
+\end{document}

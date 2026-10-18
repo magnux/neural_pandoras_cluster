@@ -4,7 +4,7 @@ Exploratory research on **Regenerative Autoencoders (ReGAE)** and **Neural Vapor
 
 ReGAE investigates how a network can learn local appearance and then the spatial relationships among its learned representations. NVD investigates how neural networks can acquire capacity through progressive parameter-block growth and later reduce that capacity through structured removal. A companion essay will examine learning through the lens of compression.
 
-This repository begins as a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. Manuscript drafts, selected figures, videos, and checkpoints will be added separately. No new training experiments were run to prepare this archive.
+This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [first ReGAE paper draft](papers/regae/regae-draft-v0.1.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or first draft.
 
 ## Research directions
 
@@ -30,6 +30,7 @@ The connecting essay will distinguish compact representations, total model-and-d
 
 | Path | Contents |
 | --- | --- |
+| [papers/regae/](papers/regae/) | ReGAE first-draft PDF, LaTeX source bundle, references, and figures |
 | [notebooks/](notebooks/) | Four original notebook snapshots, provenance notes, and SHA-256 checksums |
 | [docs/publication-roadmap.md](docs/publication-roadmap.md) | Publication scope, outlines, proposed figures, and related work |
 | [docs/regae-notes.md](docs/regae-notes.md) | ReGAE architecture, DiffAE comparison, gravity, and code observations |

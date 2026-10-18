@@ -1,0 +1,116 @@
+\begin{thebibliography}{17}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Alain and Bengio(2014)]{alain}
+Guillaume Alain and Yoshua Bengio.
+\newblock What regularized auto-encoders learn from the data-generating
+  distribution.
+\newblock \emph{Journal of Machine Learning Research}, 15\penalty0
+  (110):\penalty0 3743--3773, 2014.
+
+\bibitem[Bengio et~al.(2013)Bengio, Yao, Alain, and Vincent]{dae}
+Yoshua Bengio, Li Yao, Guillaume Alain, and Pascal Vincent.
+\newblock Generalized denoising auto-encoders as generative models.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2013.
+
+\bibitem[Chen et~al.(2018)Chen, Rubanova, Bettencourt, and Duvenaud]{neuralode}
+Ricky T.~Q. Chen, Yulia Rubanova, Jesse Bettencourt, and David Duvenaud.
+\newblock Neural ordinary differential equations.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2018.
+
+\bibitem[Del{\'e}tang et~al.(2024)Del{\'e}tang, Ruoss, Duquenne, Catt,
+  Genewein, Mattern, Grau-Moya, Wenliang, Aitchison, Orseau, Hutter, and
+  Veness]{lmcompression}
+Gr{\'e}goire Del{\'e}tang, Anian Ruoss, Paul-Ambroise Duquenne, Elliot Catt,
+  Tim Genewein, Christopher Mattern, Jordi Grau-Moya, Li~Kevin Wenliang,
+  Matthew Aitchison, Laurent Orseau, Marcus Hutter, and Joel Veness.
+\newblock Language modeling is compression.
+\newblock In \emph{International Conference on Learning Representations}, 2024.
+
+\bibitem[Dupont et~al.(2021)Dupont, Goli{\'n}ski, Alizadeh, Teh, and
+  Doucet]{coin}
+Emilien Dupont, Adam Goli{\'n}ski, Milad Alizadeh, Yee~Whye Teh, and Arnaud
+  Doucet.
+\newblock {COIN}: {CO}mpression with {I}mplicit {N}eural representations.
+\newblock \emph{arXiv preprint arXiv:2103.03123}, 2021.
+
+\bibitem[Hernandez et~al.(2021)Hernandez, Vilalta, and Moreno-Noguer]{ncam}
+Alejandro Hernandez, Armand Vilalta, and Francesc Moreno-Noguer.
+\newblock Neural cellular automata manifold.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, pages 10020--10028, 2021.
+
+\bibitem[Ho et~al.(2020)Ho, Jain, and Abbeel]{ddpm}
+Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2020.
+
+\bibitem[Johnson et~al.(2016)Johnson, Alahi, and Fei-Fei]{perceptual}
+Justin Johnson, Alexandre Alahi, and Li Fei-Fei.
+\newblock Perceptual losses for real-time style transfer and super-resolution.
+\newblock In \emph{European Conference on Computer Vision}, 2016.
+
+\bibitem[Mordvintsev et~al.(2020)Mordvintsev, Randazzo, Niklasson, and
+  Levin]{nca}
+Alexander Mordvintsev, Ettore Randazzo, Eyvind Niklasson, and Michael Levin.
+\newblock Growing neural cellular automata.
+\newblock \emph{Distill}, 2020.
+
+\bibitem[{NASA}(2023)]{webb}
+{NASA}.
+\newblock Pandora's cluster ({NIRCam} image).
+\newblock NASA Science, 2023.
+\newblock Released February 15, 2023.
+
+\bibitem[Preechakul et~al.(2022)Preechakul, Chatthee, Wizadwongsa, and
+  Suwajanakorn]{diffae}
+Konpat Preechakul, Nattanat Chatthee, Suttisak Wizadwongsa, and Supasorn
+  Suwajanakorn.
+\newblock Diffusion autoencoders: Toward a meaningful and decodable
+  representation.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, 2022.
+
+\bibitem[Rissanen(1978)]{mdl}
+Jorma Rissanen.
+\newblock Modeling by shortest data description.
+\newblock \emph{Automatica}, 1978.
+
+\bibitem[Rombach et~al.(2022)Rombach, Blattmann, Lorenz, Esser, and Ommer]{ldm}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn
+  Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, 2022.
+
+\bibitem[Shaham et~al.(2019)Shaham, Dekel, and Michaeli]{singan}
+Tamar~Rott Shaham, Tali Dekel, and Tomer Michaeli.
+\newblock {SinGAN}: Learning a generative model from a single natural image.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, 2019.
+
+\bibitem[Simonyan and Zisserman(2015)]{vgg}
+Karen Simonyan and Andrew Zisserman.
+\newblock Very deep convolutional networks for large-scale image recognition.
+\newblock In \emph{International Conference on Learning Representations}, 2015.
+
+\bibitem[Song et~al.(2021{\natexlab{a}})Song, Meng, and Ermon]{ddim}
+Jiaming Song, Chenlin Meng, and Stefano Ermon.
+\newblock Denoising diffusion implicit models.
+\newblock In \emph{International Conference on Learning Representations},
+  2021{\natexlab{a}}.
+
+\bibitem[Song et~al.(2021{\natexlab{b}})Song, Sohl-Dickstein, Kingma, Kumar,
+  Ermon, and Poole]{sde}
+Yang Song, Jascha Sohl-Dickstein, Diederik~P. Kingma, Abhishek Kumar, Stefano
+  Ermon, and Ben Poole.
+\newblock Score-based generative modeling through stochastic differential
+  equations.
+\newblock In \emph{International Conference on Learning Representations},
+  2021{\natexlab{b}}.
+
+\end{thebibliography}

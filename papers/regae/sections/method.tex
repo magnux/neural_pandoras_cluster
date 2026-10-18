@@ -1,0 +1,122 @@
+\section{Method}
+\label{sec:method}
+
+ReGAE separates local appearance from the spatial organization of local representations. An encoder $E_\phi$ and a conditional denoising decoder $D_\theta$ learn to reconstruct small image patches. A second network, the Gencoder $G_\psi$, learns a denoising transition between spatially displaced windows of their encodings. The same decoder architecture is instantiated at both levels, with separate parameters and different input channels. This section describes the archived v2 implementation; the recurrence belongs principally to latent-space sampling, rather than to an unrolled training objective.
+
+\subsection{Patch representation and denoising objective}
+
+Let $x\in[-1,1]^{3\times p\times p}$ be a clean RGB patch, with $p=32$. The encoder produces $z=E_\phi(x)\in\mathbb{R}^{d}$, where $d=256$. Patches are sampled at random locations in the source image. A convolutional inlet is followed by four spatial downsampling stages, giving $256\times2\times2$ features. After flattening, two residual multilayer perceptron blocks map $1024\to256\to256$ to produce $z$. Its output is not constrained to unit norm, and training imposes no Gaussian-prior or vector-quantization objective.
+
+We define the corruption operator
+\begin{equation}
+  C_\alpha(x,\epsilon)=(1-\alpha)x+\alpha\epsilon,
+  \qquad \epsilon\sim\mathcal{N}(0,I).
+  \label{eq:regae-corruption}
+\end{equation}
+The implementation samples $k$ uniformly from $\{0,\ldots,7\}$ and $u$ uniformly from $[0,1)$, then sets $\alpha=f(k+u)$, where
+\begin{equation}
+  f(s)=\operatorname{clip}_{[0,1]}
+  \left(\frac{1.5^{-s}-\rho}{1-\rho}\right),
+  \qquad \rho=0.0586.
+  \label{eq:regae-noise-schedule}
+\end{equation}
+Thus training includes nearly clean inputs and inputs dominated by noise. Within each batch, the second half reuses the first half's noise with opposite sign and the same corruption coefficients, paired with separately sampled clean patches. Neither $k$ nor $\alpha$ is supplied explicitly to the network. This linear mixture is a corruption schedule, not an assertion of the variance-preserving forward process used in standard diffusion formulations.
+
+The jointly optimized encoder and decoder minimize
+\begin{equation}
+  \mathcal{L}_{\mathrm{AE}}
+  =\mathbb{E}_{x,\alpha,\epsilon}\!\left[
+    \ell_{\mathrm{perc}}\bigl(
+      D_\theta(C_\alpha(x,\epsilon),E_\phi(x)),x
+    \bigr)\right].
+  \label{eq:regae-ae-loss}
+\end{equation}
+Here $\ell_{\mathrm{perc}}(a,b)$ sums the mean absolute feature differences from four successive frozen VGG16 blocks. Inputs are mapped from $[-1,1]$ to $[0,1]$, normalized with the pretrained network's channel statistics, and bilinearly resized to $64\times64$. If $\Phi_\ell$ includes this preprocessing and the first $\ell$ feature blocks, the loss is
+\begin{equation}
+  \ell_{\mathrm{perc}}(a,b)
+  =\sum_{\ell=1}^{4}
+    \frac{\|\Phi_\ell(a)-\Phi_\ell(b)\|_1}{n_\ell},
+  \label{eq:regae-perceptual-loss}
+\end{equation}
+where $n_\ell$ is the number of feature entries. Each training example requires one decoder evaluation and predicts the clean patch directly. There is no recurrent backpropagation through a sequence of regenerated images. At reconstruction time, a single call $D_\theta(\epsilon,z)$ can likewise decode a patch from its code and fresh Gaussian noise.
+
+\subsection{Conditional decoder and multiplicative gate}
+
+The decoder contains a convolutional inlet, a U-shaped network with group normalization, a multiplicative feature gate, a second U-shaped network without normalization, and an output projection. Multiscale skip connections, learned patch-relative positional tensors, and attention within the processed window provide spatial interaction. Latent-dependent transformations modulate intermediate features through learned additive and multiplicative terms. Consequently, the update operates over an entire patch or latent window rather than being restricted to a fixed local cellular neighborhood.
+
+The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gate, informally called \emph{gravity}, computes
+\begin{equation}
+  \widetilde h=h\odot\gamma(g),\qquad
+  \gamma(g)=\operatorname{clip}_{[0,2]}(1+g/3)+10^{-4}.
+  \label{eq:regae-gravity}
+\end{equation}
+Its multiplier therefore lies in $[10^{-4},2+10^{-4}]$. The earlier v0 decoder instead used $\widetilde h=h\odot\exp(g)$. The replacement bounds this particular gain; it does not impose a global activation bound or prove stability under repeated updates. Subsequent transformations can still amplify features. Both $D_\theta$ and the v2 Gencoder use this gated architecture, but the latter receives no separate conditioning vector.
+
+\subsection{Shifted latent grids}
+
+Let the source image have height $H$ and width $W$, and define $H_z=\lfloor H/p\rfloor$ and $W_z=\lfloor W/p\rfloor$. With the first stage fixed, we construct $K=4$ offset grids $Z^{(o)}\in\mathbb{R}^{d\times H_z\times W_z}$, $o\in\{0,\ldots,K-1\}$. To match the actual crop helper, their pixel origins are
+\begin{align}
+  r_o(i)&=\left\lfloor\frac{(i+o/K)(H-p)}{H_z}\right\rfloor,\\
+  c_o(j)&=\left\lfloor\frac{(j+o/K)(W-p)}{W_z}\right\rfloor.
+  \label{eq:regae-grid-origins}
+\end{align}
+The entry $Z^{(o)}_{:,i,j}$ encodes the $p\times p$ crop starting there. Nonzero-offset maps omit their final row and column during construction; training windows are selected to avoid these unfilled entries. This convention approximates a regular patch lattice but is not exactly $r_o(i)=pi+po/K$, owing to image dimensions and integer rounding.
+
+For a $q\times q$ window with $q=32$, sample an offset $o$ and a valid origin $(i,j)$. Set $o'=(o+1)\bmod K$ and $b=\lfloor(o+1)/K\rfloor$. The paired windows are
+\begin{align}
+  z^-&=Z^{(o)}_{:,i:i+q,\,j:j+q},\\
+  z^+&=Z^{(o')}_{:,i+b:i+b+q,\,j+b:j+b+q}.
+  \label{eq:regae-shift-pair}
+\end{align}
+The wrap at $o=K-1$ advances the integer lattice origin, maintaining a positive displacement in both source-image axes. Each target code describes a shifted pixel patch, rather than copying the overlapping input tokens and predicting only a newly exposed border. The displacement is approximately $p/K=8$ pixels per axis, with rounding-dependent variation.
+
+The Gencoder minimizes the elementwise mean absolute error
+\begin{equation}
+  \mathcal{L}_{G}
+  =\mathbb{E}\left[
+    \frac{\|G_\psi(C_\alpha(z^-,\epsilon))-z^+\|_1}{dq^2}
+  \right],
+  \label{eq:regae-gencoder-loss}
+\end{equation}
+using the same corruption schedule and sign-paired noise construction. Encoder and image-decoder parameters are not optimized in this stage. A latent window decodes into $pq\times pq=1024\times1024$ pixels. Its source-image support instead spans $r_o(i+q-1)-r_o(i)+p$ rows and the analogous number of columns: the rounded grid makes this slightly smaller than the decoded extent. Global source-image coordinates and the offset index are absent from the Gencoder's inputs, although its internal positional tensors distinguish locations within a window. Spatial progression must therefore be inferred from the available content.
+
+\subsection{Optimization}
+
+Both stages use Adam with AMSGrad, an initial learning rate of $5\times10^{-5}$, moment coefficients $(0.5,0.9)$, numerical stabilizer $10^{-8}$, and no weight decay. The nominal batch contains 64 examples. The first stage is configured for 256 epochs, halving its learning rate every 64 epochs and increasing gradient accumulation from one to two batches at epoch 128. The second stage is configured for 1,024 epochs, increasing accumulation from one through four batches at 256-epoch intervals. Accumulated losses are divided by the number of contributing batches before backpropagation.
+
+An epoch is a bookkeeping interval, not an exhaustive pass over disjoint crops. Both stages define its length as $\lfloor H_zW_z/64\rfloor$, or 3,607 updates for the recorded image dimensions, while drawing training locations randomly. In particular, a Gencoder epoch is not normalized by the number of latent sites in each large window. The frozen VGG features provide the first stage's perceptual objective; they are not an additional trainable branch. No multi-step rollout loss couples successive sampled transitions during optimization.
+
+\subsection{Overlapping recurrent generation}
+
+The final video routine maintains a latent canvas $S_t\in\mathbb{R}^{d\times A\times B}$ with $A=\lceil1080/p\rceil=34$ and $B=\lceil1920/p\rceil=60$. It initializes $S_0$ with Gaussian noise. Its optional seven-step initialization loop is commented out; generation begins directly with the recurrent update below.
+
+Let $\mathcal{P}$ be the multiset of $q\times q$ window origins produced by integer-rounded evenly spaced coordinates. In this configuration the row sequence is $(0,0,1,2)$ and the column sequence is $(0,9,18,28)$. Repeated origins are retained. Write $W_s$ for window extraction and $W_s^\top$ for placing a window into a zero canvas. The coverage count is $N=\sum_{s\in\mathcal{P}}W_s^\top\mathbf{1}$, broadcast across latent channels.
+
+Noise refresh is stronger near the bottom and right edges. For canvas coordinates $(r,c)$, define
+\begin{align}
+  \delta(r,c)&=\min(A-1-r,B-1-c),\\
+  m(r,c)&=\min(6,4+\delta(r,c)),\\
+  a_t(r,c)&=(1+\beta_t)f(m(r,c)),\\
+  \beta_t&=\tfrac12\left[1+\cos(t/1824)\right].
+  \label{eq:regae-refresh}
+\end{align}
+The denominator is the configured $114$ seconds times $16$ frames per second; it is the cosine's argument scale, not a full-period duration. Extending $C$ to elementwise masks, the synchronous update is
+\begin{equation}
+  S_{t+1}=N^{-1}\odot
+  \sum_{s\in\mathcal{P}}W_s^\top
+  G_\psi\!\left(C_{W_s a_t}(W_sS_t,\eta_{t,s})\right),
+  \label{eq:regae-overlap-update}
+\end{equation}
+with independent Gaussian $\eta_{t,s}$ for each window evaluation. Every prediction reads the previous canvas; an initially zero accumulator collects predictions before normalization by coverage. Earlier exploratory routines also used overwrite-based overlap handling, but Eq.~\eqref{eq:regae-overlap-update} describes the final averaging routine.
+
+There is no explicit spatial roll, coordinate update, or translated copy in this loop. Motion is learned through Eq.~\eqref{eq:regae-shift-pair}. If the model tracks a consistent source region, advancing the viewed crop down and right corresponds to apparent image-content motion up and left. That interpretation is conditional on coherent tracking, not a guaranteed trajectory.
+
+Each displayed frame is then generated independently in RGB space. For every latent location $v$, the routine draws fresh pixel noise $\xi_{t,v}$ and computes
+\begin{equation}
+  \widehat x_{t,v}
+  =Q\!\left(D_\theta(\xi_{t,v},S_{t+1,:,v})\right),
+  \label{eq:regae-frame-decoding}
+\end{equation}
+where $Q$ clips to $[-1,1]$ and quantizes to 256 levels. Nonoverlapping decoded patches form a $1088\times1920$ image, centrally cropped to $1080\times1920$. The previous RGB frame is never fed back: latent refresh and fresh decoder noise are separate stochastic sources. The configured output is 7,280 frames at 16 frames per second, or 7 minutes 35 seconds; this specifies the routine, not evidence that its saved progress widget records completion.
+
+Implementation qualifications, including the historical learning-rate schedule and earlier sampling cells, are documented in Appendix~\ref{sec:archive}.

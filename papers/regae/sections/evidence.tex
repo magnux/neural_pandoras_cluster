@@ -1,0 +1,41 @@
+\section{Case Study and Existing Evidence}
+\label{sec:evidence}
+
+\subsection{A single large image}
+The archived v2 run loads a rendered RGB mosaic of Pandora's Cluster from the James Webb Space Telescope's NIRCam instrument~\cite{webb}. Its recorded tensor dimensions are $3\times13{,}422\times17{,}644$, totaling 236,817,768 pixels. The source release dates to February 2023. This is a display composite, not a collection of independent photographs or a raw photometric dataset. We treat it as one spatially structured training image.
+
+The stored configuration produces $419\times551$ latent sites per encoding grid and four interleaved grids for displaced prediction. The image autoencoder has 55,660,048 trainable parameters, of which 4,673,752 belong to the encoder. The Gencoder has 85,479,680 parameters. The pretrained VGG network supplies a fixed perceptual objective and brings information learned outside this image; it is excluded from these trainable-parameter counts. The experiment therefore concerns training the ReGAE networks on one image, rather than learning every component from scratch using that image alone.
+
+\subsection{Preserved optimization traces}
+The notebooks preserve loss plots for both stages, reproduced in Appendix~\ref{sec:traces}. Both exhibit a rapid initial decrease followed by a slower approach to a plateau. Table~\ref{tab:training} transcribes their displayed summaries. These are training traces under random crop sampling; they do not report held-out reconstruction or generation performance.
+
+\begin{table}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{lrr}
+    \toprule
+    Quantity & Image AE & Gencoder \\
+    \midrule
+    Trainable parameters & 55.66 M & 85.48 M \\
+    Configured epochs & 256 & 1,024 \\
+    Displayed minimum & 0.389 & 0.235 \\
+    Displayed current value & 0.450 & 0.252 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Archived training summaries. Displayed losses are the square root of the corresponding batch objective: a VGG feature $L_1$ objective for the AE and a latent $L_1$ objective for the Gencoder. They are neither RMSE values nor directly comparable between columns. Epochs describe the configured training loops.}
+  \label{tab:training}
+\end{table}
+
+The plots' horizontal axes are labeled ``epoch'' by the historical plotting helper, but advance per optimizer update. An epoch in the training loop comprises 3,607 such updates. The AE plot also clips its displayed history to $[0,1]$. Raw loss arrays, independent evaluation metrics, and hardware or runtime measurements are not included in the archive. The traces support the limited conclusion that the specified objectives were optimized over extended training; they do not isolate the contribution of the shift, gate, or overlap strategy.
+
+\subsection{Sampling behavior reported during development}
+During development, local patch sampling produced star-field appearance without reliably reproducing the source image's larger arrangement. This motivated learning a spatial model over the patch codes. The author reports that the later Gencoder produced larger coherent regions resembling the source, together with stochastic variations and a persistent noisy visual quality compared informally to an old VHS recording. These observations concern existing runs; they have not been re-created for this manuscript.
+
+The author also reports occasional abrupt changes in the region being depicted, described as ``teleportation.'' The proposed explanation is ambiguity in sparse or repeated-looking content: without global coordinates, a state compatible with several source contexts can evolve toward another familiar configuration. This is a plausible interpretation of a content-conditioned transition, but the archive does not contain source-location tracking or a quantitative test of this explanation. In particular, a plotted latent mean-square value is not an entropy estimate and cannot establish an entropy-based cause.
+
+The final sampler provides two identifiable sources of visual variability: repeated noise injection in latent space and fresh image-decoder noise for every rendered patch and frame. These mechanisms can alter successive frames even if the latent trajectory remains nearby. The present evidence does not separate their effects from approximation error, patch boundaries, or overlap averaging. The routine is configured to produce a $1080\times1920$ video at 16 frames per second; the preserved progress display alone does not document a completed render.
+
+\paragraph{Status of visual evidence.}
+The generated stills, videos, and checkpoints described above have not yet been incorporated into this first draft. They are therefore reported as historical qualitative observations, not presented as independently inspectable results. The manuscript currently includes the architecture and original training plots. Adding representative frames and short trajectory excerpts from the existing runs is the next documentation step and does not require a new experiment.
+

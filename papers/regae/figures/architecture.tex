@@ -1,0 +1,53 @@
+% TikZ fragment for a full-width figure. Requires tikz and arrows.meta.
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  font=\sffamily\footnotesize,
+  >={Latex[length=2mm,width=1.35mm]},
+  box/.style={draw=black!45,rounded corners=2pt,line width=.55pt,
+              fill=black!3,align=center,minimum height=.82cm,inner sep=3pt},
+  net/.style={box,draw=blue!55!black,fill=blue!7},
+  flow/.style={->,line width=.65pt,draw=black!70},
+  note/.style={font=\sffamily\scriptsize,text=black!70,align=center}
+]
+% Pixel-level reconstruction.
+\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,1.55)
+  {Stage 1: patch autoencoding};
+\node[box,text width=2.1cm] (rgb) at (1.05,.65)
+  {RGB patch $x$\\$32\!\times\!32\!\times\!3$};
+\node[net,text width=1.4cm] (enc) at (3.95,.65)
+  {Encoder\\$E_{\phi}$};
+\node[box,text width=1.9cm] (code) at (6.4,.65)
+  {Patch code $z$\\256 values};
+\node[net,text width=2.0cm] (dec) at (10.1,.65)
+  {Conditional\\denoiser $D_{\theta}$};
+\node[box,text width=2.45cm] (recon) at (13.65,.65)
+  {Reconstructed patch\\$\widehat{x}$};
+\node[box,text width=2.1cm] (corruptx) at (6.4,-.53)
+  {Corrupted pixels\\$\widetilde{x}$};
+\draw[flow] (rgb)--(enc);
+\draw[flow] (enc)--(code);
+\draw[flow] (code)--node[note,above]{conditioning}(dec);
+\draw[flow] (dec)--(recon);
+\draw[flow] (rgb.south) |- node[note,pos=.70,above]{corruption} (corruptx.west);
+\draw[flow] (corruptx.east) -| (dec.south);
+\draw[black!15,line width=.5pt] (-.1,-1.12)--(15.0,-1.12);
+% Spatial latent prediction, followed by patchwise reconstruction.
+\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,-1.57)
+  {Stage 2: spatial latent prediction};
+\node[box,text width=2.1cm] (window) at (1.05,-2.44)
+  {Encoded window $z^-$\\$32\!\times\!32\!\times\!256$};
+\node[box,text width=1.65cm] (corruptz) at (4.05,-2.44)
+  {Corruption\\$\widetilde{z}^-$};
+\node[net,text width=1.8cm] (gen) at (7.05,-2.44)
+  {Gencoder\\$G_{\psi}$};
+\node[box,text width=2.45cm] (shifted) at (10.35,-2.44)
+  {Predicted shifted\\latent window};
+\node[box,text width=2.45cm] (image) at (13.65,-2.44)
+  {Decode each code\\$1024\!\times\!1024$ pixels};
+\draw[flow] (window)--(corruptz);
+\draw[flow] (corruptz)--(gen);
+\draw[flow] (gen)--(shifted);
+\draw[flow] (shifted)--(image);
+\node[note] at (7.55,-3.25)
+  {$D_{\theta}$ and $G_{\psi}$ reuse the same gated denoiser family with separate parameters.};
+\end{tikzpicture}

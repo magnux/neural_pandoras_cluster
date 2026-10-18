@@ -40,3 +40,9 @@ video_out/
 *.fdb_latexmk
 *.fls
 *.synctex.gz
+*.brf
+*.out
+/papers/*/main.log
+/papers/*/main.pdf
+# Include the compiled bibliography in the portable ReGAE sources.
+!/papers/regae/main.bbl
