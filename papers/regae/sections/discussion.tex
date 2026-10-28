@@ -1,59 +1,41 @@
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{Regeneration, dynamics, and ambiguous continuations}
-The Gencoder is trained to map a corrupted observation of one spatial window to a clean observation of a nearby window. It is consequently both a restoration operator and a predictor. With elementwise $L_1$ training, an optimal unconstrained predictor would return coordinatewise medians of $z^+$ conditional on the corrupted input. This observation helps explain why one-step regression need not reproduce the full distribution of possible continuations. Injected noise makes the sampled transition stochastic, but does not by itself make its transition probabilities equal to those of the source image.
+\subsection{Regeneration as a model capability}
 
-Writing the full canvas update as
-\begin{equation}
-  S_{t+1}=F_\psi(S_t,\eta_t;t)
-  \label{eq:canvas-dynamics}
-\end{equation}
-makes its dynamical character explicit. The explicit $t$ dependence comes from the refresh schedule, and $\eta_t$ collects the noise used across windows. Setting the noise draws to zero defines a formal displacement field $F_\psi(S,0;t)-S$; for a nonlinear network, this generally differs from the expected displacement under random noise. Treating either field as a continuous-time derivative would define a new model: the implementation neither trains a small-step limit nor uses an ODE integrator. Similarly, the losses in Eqs.~\eqref{eq:regae-ae-loss} and~\eqref{eq:regae-gencoder-loss} do not establish the score needed for a probability-flow ODE~\cite{sde}. The connection to diffusion is the use of learned denoising and latent generative structure, with materially different objectives and sampling rules.
+The main distinction in ReGAE is that decoding is an operation on an evolving data state. A latent code supplies information about the desired sample, while the denoiser acts on what is currently present. Starting from noise and starting from a perturbed reconstruction invoke the same interface. Regeneration is therefore a continuation of the reconstruction process, rather than a separately defined repair network.
 
-The absence of global coordinates makes continuation depend on recognizable content. A unique local configuration can provide a strong cue to the next view; several similar configurations can support competing continuations. This offers a useful interpretation of reported jumps without requiring the network to maintain an explicit location variable. Such jumps could also arise from accumulated prediction error or departure from the training distribution. The current observations cannot distinguish these mechanisms.
+This is an architectural capability and a training objective, not a guarantee that every perturbation will be reversed. The result depends on the learned operator, the conditioning information, and the corruptions represented during training. In a conditional instance, retaining the code helps specify which sample should be restored. In an unconditional instance, the current state is the only sample-specific cue, so restoration can lead to a different plausible configuration when information has been lost. This distinction is relevant to the Gencoder's reported transitions between visually ambiguous regions.
 
-\subsection{Multiplicative gain and the ``gravity'' analogy}
-The gravity branch scales a feature field pointwise. Multipliers above one amplify a feature and those below one attenuate it; spatial interactions elsewhere in the network determine how this affects an image. The analogy is an intuitive name for learned gain, not a physical gravitational law or an explicit transport of mass between pixels.
+\subsection{Connections to denoising dynamics and diffusion}
 
-The unbounded exponential gate in v0 motivated a memorable development observation. The author recalls bright stars becoming progressively brighter, followed by large dark regions, termed ``neural black holes.'' The relevant checkpoints and recordings were not retained, so the event is an anecdote rather than a reproducible result. Exponential gain offers a possible mechanism for amplification: in an isolated gate-only recurrence $h_{t+1}=h_t\exp(g_t)$, one obtains $h_T=h_0\exp(\sum_{t<T}g_t)$. This toy calculation does not model the remaining transformations or identify the cause of the reported darkening. In particular, the code supplies no verified overflow-triggered reset mechanism. The bounded v2 gate removes unbounded growth from this individual operation, while leaving stability of the complete recurrence unresolved.
+Repeated denoising gives ReGAE a dynamical interpretation~\cite{dae}. A conditional model evolves under a fixed code; an unconditional model evolves according to its current state and any noise injected by the sampling procedure. A restoration objective favors movement toward familiar data configurations, while a predictive target can additionally impose a learned transition, as in the displaced latent windows of the proof of concept.
 
-\subsection{Architectural reuse across levels}
-Reusing the decoder family for latent prediction expresses a simple hypothesis: a useful reconstruction operator for observable fields may also model fields of learned representations. The present hierarchy instantiates this idea at two levels. The networks have different parameters, dimensions, and conditioning, and the higher level models encoder outputs rather than the lower network's parameter dynamics.
+These ideas overlap with diffusion autoencoders and latent generative modeling~\cite{diffae,ldm}, but iterative use alone does not identify an update with a reverse diffusion step. Noise conditioning, corruption distributions, target parameterization, and the sampling schedule determine that relationship. Likewise, writing a discrete displacement $D_\theta(x,z)-x$ suggests a direction field, but an ODE interpretation requires a specified continuous-time construction~\cite{neuralode,sde}. The current proof of concept uses direct reconstruction and latent prediction objectives. It does not derive a score field or train a continuous-time velocity. These connections provide a framework for understanding and extending ReGAE, rather than equivalences assumed from the presence of a denoiser.
 
-This is a motivation for recursively extensible architectures, not a demonstration that a network has learned its own learning algorithm. No task distribution, meta-optimization objective, or self-modifying training procedure is evaluated here. Further levels could be defined by repeating the representation-and-prediction construction, but their effectiveness is untested. The value of the current experiment is more concrete: the same building blocks can express both image reconstruction and spatial prediction among image codes.
+\subsection{Modeling representations with the same kind of model}
 
-\subsection{What is compressed?}
+A ReGAE can model a dataset's samples, and another ReGAE can model the resulting representations. Reusing the denoiser family at both levels expresses a hypothesis that reconstruction is a useful operation across different levels of abstraction. The higher level need not be spatial: it should model whatever structure is meaningful in its input representations.
+
+This motivates recursive or fractal organizations of models. The present experiment instantiates two separately trained members of the family, without sharing their weights. It models an encoder's output fields, not the lower model's complete internal computation or learning algorithm. Architectural reuse thus provides a concrete starting point for that broader motivation; it does not by itself demonstrate meta-learning, self-modeling, or general intelligence. The number of levels and the relationships learned at each remain design questions.
+
+\subsection{Learning and compression}
 \label{sec:compression}
-A $32\times32$ RGB patch contains 3,072 scalar channel values and is represented by 256 latent scalars: a factor of 12 in scalar count. At 8 bits per RGB channel and 32 bits per latent scalar, the nominal payload reduction is instead a factor of three, before storing a decoder or accounting for reconstruction distortion. Numerical precision is therefore part of the argument, not a secondary implementation detail.
 
-Table~\ref{tab:storage} separates several storage quantities using decimal megabytes. These are calculations from dimensions and parameter counts, not measurements of compressed files. The actual crop lattice also has boundary and rounding conventions, so a single code grid is not itself a specified exact codec for every source pixel.
+The memorization question can be restated as a question about where dataset information is stored. Shared parameters describe regularities that recur across samples; individual latent tensors describe sample-specific variation. A further model can learn regularities among those tensors, reducing the relational information that must be supplied explicitly when generating plausible data. In Pandora's Cluster, that information includes spatial organization. In another dataset, it could concern a different distribution or relationship.
 
-\begin{table}[t]
-  \centering
-  \small
-  \setlength{\tabcolsep}{5pt}
-  \begin{tabular}{lr}
-    \toprule
-    Representation or parameter payload & MB \\
-    \midrule
-    Source RGB array, 8 bits per channel & 710.45 \\
-    One $419\times551\times256$ grid, FP32 & 236.41 \\
-    Image encoder and decoder, FP32 & 222.64 \\
-    Gencoder, FP32 & 341.92 \\
-    Decoder plus one latent grid, FP32 & 440.36 \\
-    AE and Gencoder parameters, FP32 & 564.56 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Uncompressed payload accounting. Rows are different accounting choices, not interchangeable complete codecs. Optimizer state and container overhead are excluded. Four shifted training grids occupy approximately 945.64 MB in FP32.}
-  \label{tab:storage}
-\end{table}
+This is a representational compression argument, not yet a claim about a complete image codec. A small code must be interpreted together with the model that decodes it, its numerical precision, and the fidelity of reconstruction. For the present configuration, 3,072 RGB channel values become 256 latent scalars. The factor of 12 in scalar count becomes a factor of three when comparing 8-bit RGB with 32-bit latent values, before including network storage. Appendix~\ref{sec:storage} provides the corresponding payload accounting.
 
-The hierarchy suggests a useful conceptual division. The first stage shares a model of appearance across many patches; a spatial code grid then specifies where those appearances occur. The second stage learns regularities in that grid. It can therefore reduce the amount of spatial information that must be supplied to generate plausible content. It does not follow that it has replaced the exact grid by a lossless description: recovering a particular source arrangement could still require an initial state, a trajectory specification, and residual information.
+A minimum-description-length view includes both model and data terms~\cite{mdl}. A practical codec additionally needs a coding procedure and a rate--distortion evaluation~\cite{coin}. Learning a generator over codes does not prove that the exact original code arrangement can be discarded without loss. ReGAE provides a concrete setting for studying successive levels of regularity, while the broader intelligence-as-compression interpretation remains a subject for a companion essay.
 
-A minimum-description-length account would include both model and data terms~\cite{mdl}. For a practical lossy codec, the relevant object is a bitstream together with a reconstruction distortion, including the cost of any non-shared decoder. ReGAE specifies neither entropy coding nor quantized model storage nor a rate--distortion evaluation. The reported large checkpoint sizes may also include optimizer tensors: AMSGrad stores three moment-related tensors per parameter in addition to the weights. This can bring FP32 training checkpoints near the author's recalled 0.89 GB and 1.4 GB without implying that inference requires that storage. A broader claim that intelligence is compression remains an interpretive position; this experiment provides a concrete example of progressively modeling local and relational information, rather than a test of that claim.
+\subsection{Multiplicative gain in the default implementation}
 
-\subsection{Limitations and next documentation steps}
-The study uses one image and lacks controlled ablations, held-out evaluation, and comparisons at matched capacity or compute. Its fixed perceptual objective draws on externally pretrained features. One-step training does not explicitly optimize long-horizon behavior or establish recurrent stability, and uncertainty is not calibrated. Historical notebook inconsistencies also limit immediate end-to-end reproduction. These boundaries are part of the scope of this first report.
+The denoiser used in the proof of concept includes a multiplicative feature branch called \emph{gravity}. It amplifies or attenuates features through a learned gain; the term is an analogy, not a physical law or a requirement of the ReGAE family. The earlier exponential gate allowed unbounded gain. The author recalls stars becoming progressively brighter followed by dark regions, described as \emph{neural black holes}. The associated recordings and checkpoints were not retained.
 
-The immediate next steps are documentary: attach existing generated examples, identify their checkpoints and sampler settings, and align descriptions with the author's records. The related Neural Vapor Deposition work concerns progressive parameter growth and removal and is reserved for a separate manuscript. Neither that study nor new ReGAE training is needed to state the method presented here. Quantitative evaluation and larger recursive hierarchies remain possible future research directions.
+An isolated gate-only recurrence $h_{t+1}=h_t\exp(g_t)$ accumulates gain as $h_T=h_0\exp(\sum_{t<T}g_t)$, illustrating a possible amplification mechanism. This does not establish the cause of the reported darkening or imply an implemented reset rule. The later bounded activation caps this individual gain. It does not prove stability of the full recurrent network. The precise gate and its placement are documented with the application architecture in Appendix~\ref{sec:implementation}.
+
+\subsection{Scope and next steps}
+
+The general design accommodates conditional and unconditional modeling of one-, two-, or three-dimensional data; the evidence presented here concerns one two-dimensional visual proof of concept. Controlled regeneration measurements, architecture and loss comparisons, and applications to other data types are not part of the current report. One-step denoising training also does not explicitly optimize long-horizon behavior.
+
+The next revision can strengthen the presentation using the existing stills, videos, checkpoints, and run records. No new experiment is required to make the family definition and the reported application precise. Further empirical evaluation can test how broadly the regenerative operator transfers across data representations, which properties are retained at each level, and how reliably perturbations are repaired.

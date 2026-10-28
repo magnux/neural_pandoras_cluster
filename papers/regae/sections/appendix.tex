@@ -19,9 +19,36 @@ The decoder tiles $32\times32$ generated image patches into a $1024\times1024$ m
 \paragraph{Visual evidence to add from existing runs.}
 The most informative additions would be a source region alongside its patch-code reconstruction, a spatially coherent Gencoder sample, and a short sequence showing a typical trajectory and a reported jump. Each should identify its checkpoint, sampler configuration, and whether its RGB rendering uses fresh noise. The unstable exponential-gate example cannot currently be illustrated from an original recording and should remain identified as an anecdote. This list specifies documentation needs, not new experiments or figures that already exist in this draft.
 
+\section{Storage Accounting for the Proof of Concept}
+\label{sec:storage}
+
+The stored parameter counts are 4,673,752 for the encoder, 50,986,296 for the conditional image denoiser, and 85,479,680 for the Gencoder. These counts describe this implementation, not a required model size. Table~\ref{tab:storage} calculates uncompressed payloads in decimal megabytes. A code grid alone does not specify a complete codec for the image, including its boundary conventions and reconstruction distortion.
+
+\begin{table}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{lr}
+    \toprule
+    Representation or parameter payload & MB \\
+    \midrule
+    Source RGB array, 8 bits per channel & 710.45 \\
+    One $419\times551\times256$ grid, FP32 & 236.41 \\
+    Image encoder and denoiser, FP32 & 222.64 \\
+    Gencoder, FP32 & 341.92 \\
+    Image denoiser plus one grid, FP32 & 440.36 \\
+    AE and Gencoder parameters, FP32 & 564.56 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Calculated uncompressed payloads for the Pandora setup. Rows describe different accounting choices, not interchangeable complete codecs. Optimizer state and file overhead are excluded. The four shifted training grids occupy approximately 945.64 MB in FP32.}
+  \label{tab:storage}
+\end{table}
+
+AMSGrad stores three moment-related tensors per parameter in addition to the weights. Including these tensors in FP32 can bring training checkpoints near the author's recalled 0.89 GB for the AE and 1.4 GB for the Gencoder. This is an inference from the optimizer and parameter counts, not a measurement of the unavailable checkpoint files. A storage comparison with JPEG or another codec would also need quantization, coding, model costs, and matched reconstruction distortion.
+
 \section{Preserved Training Plots}
 \label{sec:traces}
-The following plots are extracted directly from the saved PNG outputs of \texttt{main\_v2.ipynb}, without redrawing curves or changing image content. They are included to preserve the evidence available in the working notebook. Their labels inherit the historical plotting helper's conventions: the horizontal count is optimizer updates despite the printed ``epoch'' label, and the vertical quantity is the square root of a batch objective, not a pixel-space error metric. The two losses use different feature spaces and are not comparable in absolute magnitude.
+The plots reproduce unchanged PNGs from the archived v2 outputs. Their horizontal axes count optimizer updates despite the inherited ``epoch'' label. Vertical values are square roots of different training objectives and are not directly comparable.
 
 \begin{figure*}[t]
   \centering

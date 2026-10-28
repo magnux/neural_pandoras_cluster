@@ -1,41 +1,35 @@
-\section{Case Study and Existing Evidence}
+\section{Proof of Concept: Modeling Pandora's Cluster}
 \label{sec:evidence}
 
-\subsection{A single large image}
-The archived v2 run loads a rendered RGB mosaic of Pandora's Cluster from the James Webb Space Telescope's NIRCam instrument~\cite{webb}. Its recorded tensor dimensions are $3\times13{,}422\times17{,}644$, totaling 236,817,768 pixels. The source release dates to February 2023. This is a display composite, not a collection of independent photographs or a raw photometric dataset. We treat it as one spatially structured training image.
+\subsection{From individual samples to dataset structure}
 
-The stored configuration produces $419\times551$ latent sites per encoding grid and four interleaved grids for displaced prediction. The image autoencoder has 55,660,048 trainable parameters, of which 4,673,752 belong to the encoder. The Gencoder has 85,479,680 parameters. The pretrained VGG network supplies a fixed perceptual objective and brings information learned outside this image; it is excluded from these trainable-parameter counts. The experiment therefore concerns training the ReGAE networks on one image, rather than learning every component from scratch using that image alone.
+The proof of concept asks what must be learned to represent one large, structured visual dataset. The source is a rendered RGB mosaic of Pandora's Cluster from the James Webb Space Telescope's NIRCam instrument~\cite{webb}, with recorded dimensions of $17{,}644\times13{,}422$ pixels, or 236.8 megapixels. We treat its image patches as samples and their spatial relationships as another aspect of the dataset to be modeled. The source is a display composite rather than raw photometric data; the task concerns visual representation and synthesis.
 
-\subsection{Preserved optimization traces}
-The notebooks preserve loss plots for both stages, reproduced in Appendix~\ref{sec:traces}. Both exhibit a rapid initial decrease followed by a slower approach to a plateau. Table~\ref{tab:training} transcribes their displayed summaries. These are training traces under random crop sampling; they do not report held-out reconstruction or generation performance.
+An autoencoder can reconstruct patches when their codes are provided, but this alone does not specify how those codes should be arranged across the full image. Keeping every source code at its original location supplies that information externally. Generating familiar-looking patches without this arrangement solves a different problem. The experiment separates these two learning tasks to investigate where the information needed for each resides.
 
-\begin{table}[t]
-  \centering
-  \small
-  \setlength{\tabcolsep}{5pt}
-  \begin{tabular}{lrr}
-    \toprule
-    Quantity & Image AE & Gencoder \\
-    \midrule
-    Trainable parameters & 55.66 M & 85.48 M \\
-    Configured epochs & 256 & 1,024 \\
-    Displayed minimum & 0.389 & 0.235 \\
-    Displayed current value & 0.450 & 0.252 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Archived training summaries. Displayed losses are the square root of the corresponding batch objective: a VGG feature $L_1$ objective for the AE and a latent $L_1$ objective for the Gencoder. They are neither RMSE values nor directly comparable between columns. Epochs describe the configured training loops.}
-  \label{tab:training}
-\end{table}
+\subsection{Two instances of the ReGAE family}
 
-The plots' horizontal axes are labeled ``epoch'' by the historical plotting helper, but advance per optimizer update. An epoch in the training loop comprises 3,607 such updates. The AE plot also clips its displayed history to $[0,1]$. Raw loss arrays, independent evaluation metrics, and hardware or runtime measurements are not included in the archive. The traces support the limited conclusion that the specified objectives were optimized over extended training; they do not isolate the contribution of the shift, gate, or overlap strategy.
+The first instance is a full, conditional ReGAE: an encoder maps an RGB patch to a code, and a denoiser reconstructs the patch from a corrupted pixel state conditioned on that code. In this implementation, each $32\times32$ patch is represented by 256 latent values. The code dimensions and patch size are choices for this experiment, not properties of ReGAE in general.
 
-\subsection{Sampling behavior reported during development}
-During development, local patch sampling produced star-field appearance without reliably reproducing the source image's larger arrangement. This motivated learning a spatial model over the patch codes. The author reports that the later Gencoder produced larger coherent regions resembling the source, together with stochastic variations and a persistent noisy visual quality compared informally to an old VHS recording. These observations concern existing runs; they have not been re-created for this manuscript.
+The image reconstruction objective uses a VGG-based \emph{perceptive} loss~\cite{vgg,perceptual}. Feature agreement is used to favor visual similarity that better reflects the intended human viewing experience than strict pixel matching alone. This choice does not define the model family: an $L_1$ or $L_2$ reconstruction objective could be used instead. The pretrained feature network supplies an external visual prior, and the available experiments do not compare these loss choices.
 
-The author also reports occasional abrupt changes in the region being depicted, described as ``teleportation.'' The proposed explanation is ambiguity in sparse or repeated-looking content: without global coordinates, a state compatible with several source contexts can evolve toward another familiar configuration. This is a plausible interpretation of a content-conditioned transition, but the archive does not contain source-location tracking or a quantitative test of this explanation. In particular, a plotted latent mean-square value is not an entropy estimate and cannot establish an entropy-based cause.
+The second instance is an unconditional ReGAE over latent fields. It omits the encoder and external conditioning pathway and reuses the denoiser architecture family with separate weights. Its input is a spatial window of patch representations, and its output has the same shape. A $32\times32$ latent window can be decoded into a $1024\times1024$ image region. Here, \emph{unconditional} means that no separate code identifies which window to produce; the current latent field still provides content and spatial context.
 
-The final sampler provides two identifiable sources of visual variability: repeated noise injection in latent space and fresh image-decoder noise for every rendered patch and frame. These mechanisms can alter successive frames even if the latent trajectory remains nearby. The present evidence does not separate their effects from approximation error, patch boundaries, or overlap averaging. The routine is configured to produce a $1080\times1920$ video at 16 frames per second; the preserved progress display alone does not document a completed render.
+To encourage prediction throughout a window, the target codes are computed from image crops displaced by a fraction of the patch size. The pixel support of every target code changes, even though the underlying image regions overlap substantially. This discourages solving the transition by copying most latent tokens and filling only a new border. The shift is a task-specific extension of denoising: the Gencoder is trained to restore a clean representation of the \emph{next view}, rather than to keep the same view fixed. Exact grid construction, losses, and schedules appear in Appendix~\ref{sec:implementation}.
 
-\paragraph{Status of visual evidence.}
-The generated stills, videos, and checkpoints described above have not yet been incorporated into this first draft. They are therefore reported as historical qualitative observations, not presented as independently inspectable results. The manuscript currently includes the architecture and original training plots. Adding representative frames and short trajectory excerpts from the existing runs is the next documentation step and does not require a new experiment.
+\subsection{Recurrent synthesis and regeneration}
+
+For a conditional ReGAE, a code can initialize reconstruction from noise, and the resulting pixel state can be passed through the denoiser repeatedly. Holding that code fixed also provides a target-specific cue when restoring a perturbed reconstruction. The Pandora implementation trains restoration from a range of corruption strengths, providing the operator needed for this use. The current archive does not include a separate quantitative perturb-and-recover evaluation.
+
+The latent Gencoder is applied recurrently to overlapping windows of a larger canvas. Averaging overlapping predictions produces its next state, and the image denoiser renders the resulting patch codes. This repeatedly uses the unconditional ReGAE on representations produced by the conditional one. Because the latent target is shifted, successful restoration is coupled to movement through image content.
+
+A distinction between the family and a particular sampling shortcut matters here. The final saved video routine uses recurrent latent updates but renders each RGB patch with a single conditional-denoiser call from fresh noise. This is one application of the image ReGAE, not a restriction of its recurrent interface. It also means that the saved routine is not, by itself, a demonstration of a repeated pixel-space repair trajectory. Its output is configured for $1080\times1920$ video at 16 frames per second.
+
+\subsection{Existing observations and their scope}
+
+The author reports that local sampling learned star-field appearance without reliably recovering the source's larger organization. Modeling the latent field then produced larger coherent regions resembling Pandora's Cluster, together with stochastic variations and a noisy visual appearance compared informally to VHS video. Occasional changes between depicted regions, described as \emph{teleportation}, motivate a content-ambiguity interpretation: an unconditioned latent state may resemble more than one familiar source context.
+
+The notebooks preserve decreasing training-loss traces for both instances, reproduced in Appendix~\ref{sec:traces}. These support optimization of the specified reconstruction and prediction objectives. They do not measure regeneration after controlled perturbations, exact recovery of the original arrangement, or performance on another dataset. Generated stills and videos from the existing runs have not yet been incorporated into this draft; their behavior is reported from the author's observations, with supporting media to be added.
+
+The case study therefore illustrates a way to divide dataset modeling between sample-level reconstruction and relationships among learned representations. It does not establish that two levels are sufficient for every dataset, nor that visual resemblance demonstrates complete memorization. Its role is to make the general ReGAE proposal concrete through one application, with the available evidence stated separately from its broader intended uses.
 

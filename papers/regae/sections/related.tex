@@ -4,46 +4,41 @@
 \paragraph{Regenerative neural dynamics.}
 Growing Neural Cellular Automata learn local update rules that develop an image from a seed and can restore a damaged pattern~\cite{nca}.
 Neural Cellular Automata Manifold (NCAM) extends this construction to an autoencoding setting, using dynamic convolutions to condition cellular development on an image representation~\cite{ncam}.
-ReGAE continues this investigation of learned reconstruction dynamics, with revised conditioning and a denoising objective.
-Its U-Net and attention components provide interactions beyond a strictly local cellular rule.
-The relevant continuity is therefore the use of learned, repeatedly applicable reconstruction operators, rather than an identical cellular architecture.
+ReGAE continues this investigation through conditional denoising autoencoders and an unconditional variant that retains the regenerative operator without an encoder.
+Their state inputs and outputs occupy the same domain and have matching dimensions, enabling repeated application.
+The image implementation studied here uses U-Nets and attention beyond a strictly local cellular rule; these components and the optional latent hierarchy instantiate the broader construction.
 
 \paragraph{Denoising as generative modeling.}
-Bengio et al.~\cite{dae} show how alternating corruption and learned denoising can define a generative Markov chain, and introduce walkback training to address spurious modes encountered during sampling.
-Alain and Bengio~\cite{alain} connect regularized reconstruction to the score of the data density, including the small-Gaussian-corruption regime.
-These results motivate interpreting denoisers as learning local structure around the data distribution.
-ReGAE uses a feature-space reconstruction loss, following the broader perceptual-loss approach of Johnson et al.~\cite{perceptual}, with VGG features~\cite{vgg}, and an $L_1$ latent prediction loss.
-The score identities derived for particular reconstruction objectives do not directly establish a score interpretation for these losses.
+Bengio et al.~\cite{dae} formulate generative Markov chains through alternating corruption and denoising, including walkback training to address spurious modes.
+Alain and Bengio~\cite{alain} connect regularized reconstruction to density scores under specified assumptions.
+ReGAE permits different reconstruction objectives, including $L_1$, $L_2$, and learned-feature losses.
+The present image application uses a VGG-based \emph{perceptive} loss, often termed a perceptual loss~\cite{vgg,perceptual}, while its latent predictor uses $L_1$.
+These choices are application-specific; a score interpretation requires checking the corresponding corruption and loss assumptions.
 
 \paragraph{Diffusion and continuous-time models.}
-Denoising diffusion probabilistic models connect a prescribed forward noise process to a learned reverse process~\cite{ddpm}.
-DDIM constructs non-Markovian processes with the same training objective and permits deterministic sampling~\cite{ddim}.
-Score-based SDEs unify several such constructions and yield a probability-flow ODE with matching time-marginal distributions under the corresponding score field~\cite{sde}.
-Neural ODEs more generally parameterize a continuous-time derivative and compute trajectories using a differential-equation solver~\cite{neuralode}.
-These perspectives suggest useful questions about ReGAE's trajectories, stability, and noise injection.
-The implementation studied here defines a discrete denoising map without explicit noise-time conditioning or a learned continuous-time velocity.
-Consequently, its recurrent application is a stochastic dynamical system, while identification with a reverse diffusion or probability-flow ODE would require additional assumptions and a derivation.
+Diffusion probabilistic models learn to reverse a prescribed noise process~\cite{ddpm}; DDIM permits deterministic sampling through a related non-Markovian construction~\cite{ddim}.
+Score-based SDEs yield a probability-flow ODE with matching time-marginal distributions under the corresponding score field~\cite{sde}.
+Neural ODEs parameterize continuous-time derivatives and integrate them with differential-equation solvers~\cite{neuralode}.
+These frameworks illuminate questions about regenerative trajectories and stability.
+Our case-study implementation defines discrete denoising maps without explicit noise-time conditioning.
+Repeated application with injected noise defines a stochastic dynamical system; identification with reverse diffusion or a probability-flow ODE requires a further derivation.
 
 \paragraph{Autoencoding and latent generative structure.}
-Diffusion Autoencoders (DiffAE) are a particularly close comparison~\cite{diffae}.
+Diffusion Autoencoders (DiffAE) are particularly close to ReGAE's conditional autoencoding formulation~\cite{diffae}.
 They combine a learned semantic encoder with a conditional DDIM decoder, representing an image through a 512-dimensional nonspatial semantic vector and a spatial stochastic code.
-The latter retains image-specific variations needed for near-exact reconstruction; the semantic vector alone is not the complete code.
-DiffAE also learns a latent DDIM prior over semantic vectors for unconditional generation, using a deep multilayer perceptron with skip connections.
-Latent diffusion models similarly place generative denoising in the representation space of a pretrained autoencoder~\cite{ldm}.
-ReGAE's Gencoder learns relationships across a spatial array of patch representations and predicts the encodings of slightly displaced image patches.
-This changes the patch support throughout the target array and couples latent denoising to spatial prediction.
-Overlapping recurrent predictions then support image traversal without global coordinate conditioning.
-Our focus is this spatial transition mechanism and its integration with regenerative decoding, rather than the general presence of a second latent model.
+Both parts contribute to near-exact reconstruction.
+DiffAE also fits a latent DDIM prior over semantic vectors using a deep multilayer perceptron with skip connections.
+Latent diffusion models likewise perform generative denoising in an autoencoder's representation space~\cite{ldm}.
+In our Pandora's Cluster application, an unconditional ReGAE, the Gencoder, models spatial windows of patch codes and predicts displaced encodings.
+This spatial prediction hierarchy is one composition of the family, and differs from DiffAE's prior over image-level semantic vectors.
 
 \paragraph{Learning from a single image.}
-SinGAN learns a hierarchy of patch distributions at different scales from one natural image, enabling synthesis that preserves appearance and larger structures~\cite{singan}.
-It establishes the importance of multiscale internal image statistics for this setting.
-ReGAE studies a related division between local appearance and spatial organization through encoded patches and displaced latent prediction.
-The single-image setting makes the distinction between reconstructing a particular arrangement and generating configurations with familiar local content especially visible.
+SinGAN learns multiscale patch distributions from one natural image~\cite{singan}.
+Our image case study similarly examines local appearance and spatial organization, using encoded patches and displaced prediction.
+The setting makes the distinction between reconstructing a particular arrangement and generating familiar-looking content visible, without restricting ReGAE to single-image modeling.
 
 \paragraph{Representation and compression.}
-Minimum description length evaluates models through the length of their description together with the data description they support~\cite{mdl}.
-COIN provides an operational image-compression example by fitting a coordinate network and storing its quantized weights~\cite{coin}.
-Recent work on language-model compression also connects predictive distributions to explicit coding procedures~\cite{lmcompression}.
-These perspectives distinguish a low-dimensional representation from a complete compressed bitstream.
-ReGAE's hierarchy concerns reusable descriptions of appearance and spatial structure; assessing it as a codec would additionally require accounting for precision, model storage, residual information, and reconstruction distortion.
+Minimum description length counts both model and data descriptions~\cite{mdl}.
+COIN stores an image through quantized coordinate-network weights~\cite{coin}, while language-model compression connects predictive distributions to explicit coding~\cite{lmcompression}.
+These perspectives inform the interpretation of ReGAE representations.
+An operational compression claim additionally requires accounting for precision, model storage, residual information, and reconstruction distortion.

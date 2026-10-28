@@ -1,53 +1,58 @@
-% TikZ fragment for a full-width figure. Requires tikz and arrows.meta.
+% General ReGAE family; full-width TikZ fragment.
+% Requires \usepackage{tikz} and \usetikzlibrary{arrows.meta}.
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   font=\sffamily\footnotesize,
   >={Latex[length=2mm,width=1.35mm]},
   box/.style={draw=black!45,rounded corners=2pt,line width=.55pt,
-              fill=black!3,align=center,minimum height=.82cm,inner sep=3pt},
+              fill=black!3,align=center,minimum height=.65cm,inner sep=3pt},
   net/.style={box,draw=blue!55!black,fill=blue!7},
-  flow/.style={->,line width=.65pt,draw=black!70},
+  flow/.style={->,line width=.75pt,draw=black!75},
+  feedback/.style={->,line width=.85pt,draw=blue!55!black},
   note/.style={font=\sffamily\scriptsize,text=black!70,align=center}
 ]
-% Pixel-level reconstruction.
-\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,1.55)
-  {Stage 1: patch autoencoding};
-\node[box,text width=2.1cm] (rgb) at (1.05,.65)
-  {RGB patch $x$\\$32\!\times\!32\!\times\!3$};
-\node[net,text width=1.4cm] (enc) at (3.95,.65)
-  {Encoder\\$E_{\phi}$};
-\node[box,text width=1.9cm] (code) at (6.4,.65)
-  {Patch code $z$\\256 values};
-\node[net,text width=2.0cm] (dec) at (10.1,.65)
-  {Conditional\\denoiser $D_{\theta}$};
-\node[box,text width=2.45cm] (recon) at (13.65,.65)
-  {Reconstructed patch\\$\widehat{x}$};
-\node[box,text width=2.1cm] (corruptx) at (6.4,-.53)
-  {Corrupted pixels\\$\widetilde{x}$};
-\draw[flow] (rgb)--(enc);
-\draw[flow] (enc)--(code);
-\draw[flow] (code)--node[note,above]{conditioning}(dec);
-\draw[flow] (dec)--(recon);
-\draw[flow] (rgb.south) |- node[note,pos=.70,above]{corruption} (corruptx.west);
-\draw[flow] (corruptx.east) -| (dec.south);
-\draw[black!15,line width=.5pt] (-.1,-1.12)--(15.0,-1.12);
-% Spatial latent prediction, followed by patchwise reconstruction.
-\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,-1.57)
-  {Stage 2: spatial latent prediction};
-\node[box,text width=2.1cm] (window) at (1.05,-2.44)
-  {Encoded window $z^-$\\$32\!\times\!32\!\times\!256$};
-\node[box,text width=1.65cm] (corruptz) at (4.05,-2.44)
-  {Corruption\\$\widetilde{z}^-$};
-\node[net,text width=1.8cm] (gen) at (7.05,-2.44)
-  {Gencoder\\$G_{\psi}$};
-\node[box,text width=2.45cm] (shifted) at (10.35,-2.44)
-  {Predicted shifted\\latent window};
-\node[box,text width=2.45cm] (image) at (13.65,-2.44)
-  {Decode each code\\$1024\!\times\!1024$ pixels};
-\draw[flow] (window)--(corruptz);
-\draw[flow] (corruptz)--(gen);
-\draw[flow] (gen)--(shifted);
-\draw[flow] (shifted)--(image);
-\node[note] at (7.55,-3.25)
-  {$D_{\theta}$ and $G_{\psi}$ reuse the same gated denoiser family with separate parameters.};
+% A latent tensor conditions repeated, shape-preserving denoising.
+\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,2.65)
+  {Conditional ReGAE};
+\node[box,text width=2.1cm] (reference) at (1.1,1.9)
+  {Input $x$};
+\node[net,text width=2.1cm] (encoder) at (4.2,1.9)
+  {Encoder $E_{\phi}$};
+\node[box,text width=2.1cm] (latent) at (8.2,1.9)
+  {Latent tensor $z$};
+\node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-c) at (1.1,.68)
+  {Noise initialization\\or perturbation};
+\node[box,text width=2.1cm] (state-c) at (4.2,.68)
+  {Input state $x_t$};
+\node[net,text width=2.1cm] (denoise-c) at (8.2,.68)
+  {Denoiser $D_{\theta}$};
+\node[box,text width=2.1cm] (next-c) at (12.7,.68)
+  {Next state $x_{t+1}$};
+\draw[flow] (reference)--(encoder);
+\draw[flow] (encoder)--(latent);
+\draw[flow] (latent)--node[note,right]{conditions}(denoise-c);
+\draw[flow] (noise-c)--(state-c);
+\draw[flow] (state-c)--(denoise-c);
+\draw[flow] (denoise-c)--(next-c);
+\draw[feedback] (next-c.south)--(12.7,-.05)
+  --node[note,fill=white,inner sep=2pt]{repeat}(4.2,-.05)--(state-c.south);
+\draw[black!15,line width=.5pt] (-.1,-.52)--(14.0,-.52);
+% The same recurrent construction can omit the encoder and conditioning code.
+\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,-.9)
+  {Unconditional ReGAE};
+\node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-u) at (1.1,-1.6)
+  {Noise initialization\\or perturbation};
+\node[box,text width=2.1cm] (state-u) at (4.2,-1.6)
+  {Input state $u_t$};
+\node[net,text width=2.1cm] (denoise-u) at (8.2,-1.6)
+  {Denoiser $D_{\psi}$};
+\node[box,text width=2.1cm] (next-u) at (12.7,-1.6)
+  {Next state $u_{t+1}$};
+\draw[flow] (noise-u)--(state-u);
+\draw[flow] (state-u)--(denoise-u);
+\draw[flow] (denoise-u)--(next-u);
+\draw[feedback] (next-u.south)--(12.7,-2.3)
+  --node[note,fill=white,inner sep=2pt]{repeat}(4.2,-2.3)--(state-u.south);
+\node[note] at (7.0,-2.9)
+  {Denoisers preserve input/output shape; states can be 1D, 2D, or 3D data or latent representations.};
 \end{tikzpicture}

@@ -2,15 +2,17 @@
 
 Exploratory research on **Regenerative Autoencoders (ReGAE)** and **Neural Vapor Deposition (NVD)**, using a large JWST image of Pandora's Cluster as a shared learning problem.
 
-ReGAE investigates how a network can learn local appearance and then the spatial relationships among its learned representations. NVD investigates how neural networks can acquire capacity through progressive parameter-block growth and later reduce that capacity through structured removal. A companion essay will examine learning through the lens of compression.
+ReGAE is a family of models for generation and regeneration through iterative denoising. A conditional ReGAE combines an encoder with a shape-preserving denoiser; an unconditional variant omits the encoder and external code. The Pandora's Cluster experiments compose two instances to learn image samples and spatial relationships among their representations. NVD investigates progressive parameter-block growth and later structured removal. A companion essay will examine learning through the lens of compression.
 
-This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [first ReGAE paper draft](papers/regae/regae-draft-v0.1.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or first draft.
+This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [revised ReGAE paper draft (v0.2)](papers/regae/regae-draft-v0.2.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or manuscript drafts.
 
 ## Research directions
 
 ### Regenerative Autoencoders
 
-A patch encoder and conditional denoising decoder learn local image reconstruction. A second spatial denoiser, the **Gencoder**, uses the same decoder architecture family to model grids of latent patches and predict a small spatial displacement. Recurrent, overlapping sampling is intended to generate larger image regions without conditioning on the original image's global coordinates.
+A conditional ReGAE encodes a sample into a latent tensor and repeatedly applies a denoiser to a data state. The denoiser has matching input and output shapes, so it can generate from noise and resume reconstruction after perturbation. Its architecture, loss, and data dimensionality are configurable. An unconditional ReGAE retains the recurrent denoiser without an encoder-derived conditioning code.
+
+In the Pandora proof of concept, the first instance learns image-patch reconstruction. A second, unconditional instance—the **Gencoder**—models grids of latent patches and predicts a small spatial displacement. Recurrent, overlapping sampling generates larger image regions without global source-coordinate conditioning. This two-level spatial setup is one application of the family.
 
 The attached v0 and v2 configurations encode a 32 × 32 RGB patch into 256 values. The v2 Gencoder processes 32 × 32 latent patches, corresponding to 1024 × 1024 decoded pixels. Its saved source-image dimensions are 17,644 × 13,422, approximately 237 megapixels.
 
@@ -30,7 +32,7 @@ The connecting essay will distinguish compact representations, total model-and-d
 
 | Path | Contents |
 | --- | --- |
-| [papers/regae/](papers/regae/) | ReGAE first-draft PDF, LaTeX source bundle, references, and figures |
+| [papers/regae/](papers/regae/) | ReGAE revised draft (v0.2), LaTeX sources, references, figures, and prior version |
 | [notebooks/](notebooks/) | Four original notebook snapshots, provenance notes, and SHA-256 checksums |
 | [docs/publication-roadmap.md](docs/publication-roadmap.md) | Publication scope, outlines, proposed figures, and related work |
 | [docs/regae-notes.md](docs/regae-notes.md) | ReGAE architecture, DiffAE comparison, gravity, and code observations |
