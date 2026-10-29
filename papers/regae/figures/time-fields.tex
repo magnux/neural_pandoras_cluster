@@ -1,0 +1,82 @@
+% Constructed conceptual illustration, not an experiment or learned potential.
+% Requires TikZ and arrows.meta; suitable for a full-width figure.
+\begin{tikzpicture}[
+  x=1cm,y=1cm,font=\sffamily\footnotesize,
+  >={Latex[length=1.7mm,width=1.2mm]},
+  frame/.style={draw=black!35,line width=.5pt,rounded corners=1.5pt},
+  contour/.style={draw=black!17,line width=.55pt},
+  field/.style={->,draw=black!40,line width=.6pt},
+  update/.style={->,line width=1.05pt},
+  smallnote/.style={font=\sffamily\scriptsize,text=black!70,align=center}
+]
+\node[anchor=west,font=\sffamily\bfseries\small] at (0,5.05)
+  {(A) Time-conditioned field};
+\node[anchor=west] at (0,4.60)
+  {$U(x,t)$: the time input can change the update};
+\node[anchor=west,font=\sffamily\bfseries\small] at (8.2,5.05)
+  {(B) Time-unconditioned ReGAE};
+\node[anchor=west] at (8.2,4.60)
+  {$\Delta_z(x)=D_{\theta}(x,z)-x$: fixed $z$, no explicit $t$};
+% Each thumbnail repeats the SAME state-space domain. They are snapshots
+% at selected times, not a partition of states into different noise bands.
+\foreach \shift/\time/\yc/\dy/\shade in
+  {0/1/2.40/.85/blue,2.55/2/1.55/.02/teal,5.10/3/.75/-.70/violet}{
+  \begin{scope}[shift={(\shift,1.05)}]
+    \path[fill=\shade!2] (0,0) rectangle (2.15,2.92);
+    \begin{scope}
+      \clip (0,0) rectangle (2.15,2.92);
+      \foreach \rx/\ry in {.32/.36,.67/.72,1.05/1.13,1.48/1.57}{
+        \draw[draw=\shade!28,line width=.55pt]
+          (1.60,\yc) ellipse[x radius=\rx cm,y radius=\ry cm];
+      }
+    \end{scope}
+    \draw[frame] (0,0) rectangle (2.15,2.92);
+    \node[font=\sffamily\small] at (1.075,3.20) {$t_{\time}$};
+    \fill[black] (.54,1.40) circle[radius=1.5pt];
+    \node[anchor=east,inner sep=2pt] at (.45,1.40) {$x$};
+    \draw[update,draw=\shade!65!black]
+      (.54,1.40)--(1.45,{1.40+\dy});
+    % Identical coordinate indicators reinforce the common domain.
+    \draw[field] (.17,.15)--(.63,.15);
+    \draw[field] (.17,.15)--(.17,.59);
+  \end{scope}
+}
+\node[smallnote] at (3.63,.60)
+  {Same marked state $x$; time may be continuous.};
+\draw[black!15,line width=.5pt] (7.75,.35)--(7.75,5.28);
+% A single fixed code-conditioned state-update map. Contours are illustrative
+% guides only; they do not imply that the map is an energy gradient.
+\path[fill=blue!2] (8.2,1.05) rectangle (15.65,3.97);
+\begin{scope}
+  \clip (8.2,1.05) rectangle (15.65,3.97);
+  \foreach \rx/\ry in {.40/.27,.83/.55,1.37/.87,1.99/1.15,2.66/1.48,3.35/1.82}{
+    \draw[contour] (13.30,2.30) ellipse[x radius=\rx cm,y radius=\ry cm];
+  }
+  \draw[field] (10.05,3.36)--(10.76,3.18);
+  \draw[field] (11.96,3.55)--(12.36,3.12);
+  \draw[field] (14.91,1.55)--(14.42,1.86);
+\end{scope}
+\draw[frame] (8.2,1.05) rectangle (15.65,3.97);
+% Two hand-constructed trajectories, with arrows marking repeated updates.
+\draw[update,draw=blue!65!black] (8.95,1.48) to[out=4,in=205] (10.25,1.80);
+\draw[update,draw=blue!65!black] (10.25,1.80) to[out=35,in=190] (11.40,2.50);
+\draw[update,draw=blue!65!black] (11.40,2.50) to[out=10,in=165] (12.48,2.47);
+\draw[update,draw=blue!65!black] (12.48,2.47)--(13.30,2.30);
+\fill[blue!65!black] (8.95,1.48) circle[radius=1.8pt];
+\node[smallnote,anchor=west,text=blue!65!black] at (8.66,1.22)
+  {noise initialization};
+\draw[update,draw=orange!80!black] (14.70,3.45) to[out=238,in=45] (14.20,2.94);
+\draw[update,draw=orange!80!black] (14.20,2.94)--(13.75,2.59);
+\draw[update,draw=orange!80!black] (13.75,2.59)--(13.30,2.30);
+\fill[orange!80!black] (14.70,3.45) circle[radius=1.8pt];
+\node[smallnote,anchor=east,text=orange!80!black] at (15.32,3.73)
+  {perturbed state};
+\filldraw[fill=black,draw=white,line width=.5pt]
+  (13.30,2.30) circle[radius=2.3pt];
+\node[smallnote,anchor=north] at (13.30,2.13)
+  {illustrative target};
+\node[smallnote] at (11.93,.60)
+  {States evolve under one code-conditioned update map.};
+\node[smallnote] at (7.83,-.02)
+  {Illustrative fields; no learned energy surface is assumed.};
+\end{tikzpicture}

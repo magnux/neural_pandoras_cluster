@@ -23,11 +23,11 @@
 \node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-c) at (1.1,.68)
   {Noise initialization\\or perturbation};
 \node[box,text width=2.1cm] (state-c) at (4.2,.68)
-  {Input state $x_t$};
+  {Input state $x_k$};
 \node[net,text width=2.1cm] (denoise-c) at (8.2,.68)
   {Denoiser $D_{\theta}$};
 \node[box,text width=2.1cm] (next-c) at (12.7,.68)
-  {Next state $x_{t+1}$};
+  {Next state $x_{k+1}$};
 \draw[flow] (reference)--(encoder);
 \draw[flow] (encoder)--(latent);
 \draw[flow] (latent)--node[note,right]{conditions}(denoise-c);
@@ -43,11 +43,11 @@
 \node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-u) at (1.1,-1.6)
   {Noise initialization\\or perturbation};
 \node[box,text width=2.1cm] (state-u) at (4.2,-1.6)
-  {Input state $u_t$};
+  {Input state $u_k$};
 \node[net,text width=2.1cm] (denoise-u) at (8.2,-1.6)
   {Denoiser $D_{\psi}$};
 \node[box,text width=2.1cm] (next-u) at (12.7,-1.6)
-  {Next state $u_{t+1}$};
+  {Next state $u_{k+1}$};
 \draw[flow] (noise-u)--(state-u);
 \draw[flow] (state-u)--(denoise-u);
 \draw[flow] (denoise-u)--(next-u);

@@ -7,11 +7,63 @@ The main distinction in ReGAE is that decoding is an operation on an evolving da
 
 This is an architectural capability and a training objective, not a guarantee that every perturbation will be reversed. The result depends on the learned operator, the conditioning information, and the corruptions represented during training. In a conditional instance, retaining the code helps specify which sample should be restored. In an unconditional instance, the current state is the only sample-specific cue, so restoration can lead to a different plausible configuration when information has been lost. This distinction is relevant to the Gencoder's reported transitions between visually ambiguous regions.
 
-\subsection{Connections to denoising dynamics and diffusion}
+\subsection{Prediction targets and sampling rules}
+\label{sec:targets}
 
-Repeated denoising gives ReGAE a dynamical interpretation~\cite{dae}. A conditional model evolves under a fixed code; an unconditional model evolves according to its current state and any noise injected by the sampling procedure. A restoration objective favors movement toward familiar data configurations, while a predictive target can additionally impose a learned transition, as in the displaced latent windows of the proof of concept.
+The same sample coordinates can represent a desired state, a noise vector, or a velocity, but those quantities play different roles in an update. ReGAE predicts a corrected state and assigns it directly to the next iterate. A common DDPM parameterization predicts noise~\cite{ddpm}. However, diffusion is not restricted to noise prediction: Chan's tutorial explicitly develops both signal and noise estimates~\cite{chan2024}. For a corruption model
+\begin{equation}
+  u_t=a_t x_{\mathrm{clean}}+b_t\epsilon,
+\end{equation}
+the estimates are related, when $a_t\neq0$, by
+\begin{equation}
+  \widehat{x}_{\mathrm{clean}}(u_t,t)
+  =\frac{u_t-b_t\widehat{\epsilon}_\theta(u_t,t)}{a_t}.
+  \label{eq:target-conversion}
+\end{equation}
+This algebraic conversion does not make training objectives identical without accounting for their weights. A diffusion sampler generally combines its prediction with the current state and schedule-dependent coefficients, and may add noise. Predicting the clean state does not require replacing the current state by that estimate at every step.
 
-These ideas overlap with diffusion autoencoders and latent generative modeling~\cite{diffae,ldm}, but iterative use alone does not identify an update with a reverse diffusion step. Noise conditioning, corruption distributions, target parameterization, and the sampling schedule determine that relationship. Likewise, writing a discrete displacement $D_\theta(x,z)-x$ suggests a direction field, but an ODE interpretation requires a specified continuous-time construction~\cite{neuralode,sde}. The current proof of concept uses direct reconstruction and latent prediction objectives. It does not derive a score field or train a continuous-time velocity. These connections provide a framework for understanding and extending ReGAE, rather than equivalences assumed from the presence of a denoiser.
+Flow Matching instead regresses a velocity field along probability paths~\cite{flowmatching}. Sampling integrates
+\begin{equation}
+  \frac{d u(t)}{dt}=v_\theta(u(t),t).
+  \label{eq:flow-ode}
+\end{equation}
+For example, an Euler update is $u(t+h)\approx u(t)+h\,v_\theta(u(t),t)$. Solvers need not be complicated: the distinction is whether the learned output is used as the next state, converted through a scheduled transition, or integrated as a derivative. These choices are summarized in Table~\ref{tab:targets}. Direct state prediction is shared with other denoising formulations; the ReGAE construction combines it with repeated output reuse and absence of a timestep input.
+
+\begin{table*}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{p{0.22\textwidth}p{0.29\textwidth}p{0.41\textwidth}}
+    \toprule
+    Representative formulation & Learned output & Use in sampling \\
+    \midrule
+    ReGAE & Desired state $D_\theta(u,z)$ & Direct assignment: $u_{\mathrm{next}}=D_\theta(u,z)$ \\
+    Diffusion, noise parameterization & Noise estimate $\widehat{\epsilon}_\theta(u,t)$ & Apply the schedule-dependent transition rule \\
+    Diffusion, state parameterization & Clean-state estimate $\widehat{x}_{\mathrm{clean}}(u,t)$ & Apply the schedule-dependent transition rule \\
+    Flow Matching & Velocity $v_\theta(u,t)$ & Integrate the field; Euler uses $u_{\mathrm{next}}=u+h\,v_\theta(u,t)$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Prediction targets and update rules are separate design choices~\cite{ddpm,chan2024,flowmatching}. The diffusion rows are alternative parameterizations, not an exhaustive taxonomy; score and other parameterizations also exist. Content conditioning can be supplied in any row. The ReGAE code $z$ is distinct from a time or noise-level input $t$.}
+  \label{tab:targets}
+\end{table*}
+
+\subsection{One correction map and the landscape intuition}
+\label{sec:geometry}
+
+At fixed $z$, $\Delta_z(u)$ assigns a correction to the state itself, without knowing how many updates preceded it. Generation and repair therefore traverse the same learned map. In a time-conditioned construction, a generic update field $U(u,t)$ can instead assign different directions to the same $u$ at different times. This family of fields is commonly represented by a single neural network with shared weights; it need not be a collection of separate models.
+
+Figure~\ref{fig:time-fields} makes the distinction visible. Noise or time conditioning indexes different fields over the \emph{same} state domain. It does not divide that domain into disjoint spatial bands, and time can be continuous~\cite{sde}. Likewise, omitting time does not itself establish continuity: that is a property of the network's operations, and time-conditioned fields can also be continuous. The useful interpretation of one uninterrupted landscape is one correction map jointly trained across sampled corruption levels.
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/time-fields}
+  \caption{Conceptual comparison of time dependence. (A) Selected times index fields over the same state coordinates; the marked state can receive different updates. The panels are time slices, not disjoint regions of state space. (B) A fixed-code ReGAE uses one induced displacement field for both noise initialization and a perturbed state. The contours and paths are constructed illustrations, not measured trajectories, learned energies, or evidence of convergence. The comparison concerns the learned operator; an external sampling schedule can still introduce time dependence.}
+  \label{fig:time-fields}
+\end{figure*}
+
+The basin interpretation is useful when a desired reconstruction is an attracting fixed point. It is not a consequence of omitting a clock. A learned vector field need not be the gradient of any scalar energy, and generative transport need not minimize an objective until reaching a stationary state. In particular, a diffusion or flow trajectory's terminal sample need not be an equilibrium of its field. For ReGAE, local contraction would be a sufficient mechanism for repair; Appendix~\ref{sec:geometry-notes} states that condition and an explicit Euler connection as mathematical interpretations, not measured properties.
+
+The distinction between the neural map and the whole sampler also matters. The saved Pandora video routine varies its injected noise with frame index and averages overlapping predictions. Its denoisers do not receive that index, but the resulting stochastic canvas update still depends on time through the external schedule. Moreover, the shifted Gencoder target encourages progression between views, so its intended behavior is not convergence to a single unchanging image.
 
 \subsection{Modeling representations with the same kind of model}
 

@@ -2,8 +2,8 @@
 \label{sec:related}
 
 \paragraph{Regenerative neural dynamics.}
-Growing Neural Cellular Automata learn local update rules that develop an image from a seed and can restore a damaged pattern~\cite{nca}.
-Neural Cellular Automata Manifold (NCAM) extends this construction to an autoencoding setting, using dynamic convolutions to condition cellular development on an image representation~\cite{ncam}.
+Growing Neural Cellular Automata distinguish growth, persistence, and regeneration, with damage during training strengthening recovery~\cite{nca}.
+Neural Cellular Automata Manifold (NCAM) extends cellular growth to an autoencoding setting through dynamic convolutions~\cite{ncam}. Its reported code-mutation experiments concern robustness of the encoding; they do not constitute a damaged-state regeneration evaluation.
 ReGAE continues this investigation through conditional denoising autoencoders and an unconditional variant that retains the regenerative operator without an encoder.
 Their state inputs and outputs occupy the same domain and have matching dimensions, enabling repeated application.
 The image implementation studied here uses U-Nets and attention beyond a strictly local cellular rule; these components and the optional latent hierarchy instantiate the broader construction.
@@ -19,9 +19,8 @@ These choices are application-specific; a score interpretation requires checking
 Diffusion probabilistic models learn to reverse a prescribed noise process~\cite{ddpm}; DDIM permits deterministic sampling through a related non-Markovian construction~\cite{ddim}.
 Score-based SDEs yield a probability-flow ODE with matching time-marginal distributions under the corresponding score field~\cite{sde}.
 Neural ODEs parameterize continuous-time derivatives and integrate them with differential-equation solvers~\cite{neuralode}.
-These frameworks illuminate questions about regenerative trajectories and stability.
-Our case-study implementation defines discrete denoising maps without explicit noise-time conditioning.
-Repeated application with injected noise defines a stochastic dynamical system; identification with reverse diffusion or a probability-flow ODE requires a further derivation.
+Flow Matching learns a time-dependent velocity field along probability paths~\cite{flowmatching}. Chan's tutorial connects signal and noise prediction with numerical sampling, providing a useful account of these geometric relationships~\cite{chan2024}.
+ReGAE directly predicts desired states without explicit noise-time conditioning. Sections~\ref{sec:direct-map} and~\ref{sec:geometry} distinguish this update from noise prediction and velocity integration, without treating any one parameterization as universal to diffusion.
 
 \paragraph{Autoencoding and latent generative structure.}
 Diffusion Autoencoders (DiffAE) are particularly close to ReGAE's conditional autoencoding formulation~\cite{diffae}.

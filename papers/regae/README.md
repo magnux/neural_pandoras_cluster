@@ -2,15 +2,23 @@
 
 **Regenerative Autoencoders: Generation and Regeneration through Iterative Denoising**
 
-Version 0.2, October 28, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.3, October 29, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.2.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.2-source.zip)
+- [Read the revised PDF](regae-draft-v0.3.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.3-source.zip)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous version: [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
 
-## Changes from version 0.1
+## Changes from version 0.2
+
+The abstract and introduction now introduce regeneration through neural cellular automata: growth produces a pattern, persistence maintains it, and regeneration repairs an already developed pattern after damage. The text separates this biological analogy from NCAM's encoder-conditioned growth-program lineage.
+
+The method explicitly defines direct state prediction and output feedback without a timestep or corruption-level input. Conditioning on an encoded sample is distinguished from conditioning on time. The discussion compares clean-state, noise, and velocity prediction, including diffusion's alternative parameterizations and the role of a sampling or integration rule.
+
+Figure 2 compares time-indexed fields over the same state space with a single time-unconditioned ReGAE map. It is a conceptual diagram, not a measured landscape. A new mathematical appendix gives the squared-error conditional-mean interpretation with hidden corruption strength, a sufficient local repair condition, and an algebraic Euler connection. The text distinguishes these interpretations from demonstrated properties of the archived models. Stanley H. Chan's diffusion tutorial and Flow Matching have been added to the references.
+
+## Changes in version 0.2
 
 The paper now introduces ReGAE as a model family whose shape-preserving denoiser can generate from noise and resume reconstruction after perturbation. The conditional form combines an encoder and denoiser; the unconditional form omits the encoder and external code.
 
@@ -34,13 +42,13 @@ The output is `main.pdf`. Alternatively, `make` builds and copies it to the vers
 
 No training or image-generation experiment was run for this revision. The archived setup uses 256-dimensional codes and a 17,644 × 13,422 source image (236.8 MP); those values describe this proof of concept, not the family. Existing video behavior remains author-reported until the saved media are incorporated. The early exponential-gate instability remains an anecdote whose recordings were not retained.
 
-For the next review, the central questions are whether the family definition and regeneration mechanism capture the intended idea, whether the conditional/unconditional distinction is clear, and whether the example supports the broader dataset-modeling argument. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
+For the next review, the central questions are whether the NCA-derived regeneration terminology captures the intended idea, whether direct state updates and the absence of time conditioning are clear, and whether the comparison figure conveys the geometric intuition without implying an established energy function or convergence result. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
 
 NVD is reserved for its own manuscript, and the broader intelligence-as-compression argument for the companion essay.
 
 ## Figure provenance
 
-`figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
+`figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
 
 | File | Zero-based notebook cell | SHA-256 |
 | --- | --- | --- |

@@ -14,7 +14,7 @@
 
 \title{Regenerative Autoencoders:\\Generation and Regeneration through Iterative Denoising}
 \author{Alejandro Hernandez Ruiz\\
-  {\small Revised draft, version 0.2 --- October 28, 2026}}
+  {\small Revised draft, version 0.3 --- October 29, 2026}}
 
 \begin{document}
 % Explicit English hyphenation minima for portable TeX formats.
@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-Regenerative Autoencoders (ReGAE) are a family of models for generating data and regenerating it after perturbation through repeated denoising. In the conditional form, an encoder compresses a sample into a latent tensor and a denoiser replaces the conventional decoder. The denoiser preserves the shape of its input, allowing its output to become the next state: generation starts from noise, while regeneration resumes from a disturbed reconstruction. This formulation extends the regenerative motivation of Neural Cellular Automata Manifold. An unconditional variant omits the encoder and latent conditioning, using the denoiser as a generative model over data or learned representations. The same design can be instantiated for different data dimensionalities, network architectures, and reconstruction objectives. We investigate what such models must learn to represent both samples and relationships within a dataset. As a proof of concept, a conditional ReGAE learns image patches from Pandora's Cluster and an unconditional ReGAE models their spatial latent structure. This application illustrates the broader construction without defining its scope. We discuss the existing training evidence and qualitative observations, and connect the framework to diffusion autoencoders, denoising dynamics, recursive modeling, and compression.
+Denoising models learn to correct corrupted data toward a desired state. Neural cellular automata use the biological term \emph{regeneration} for recovery after an already developed pattern is damaged. Building on this viewpoint and the autoencoding lineage of Neural Cellular Automata Manifold, we present Regenerative Autoencoders (ReGAE): a family of generative denoising models that directly predict corrected states and reuse their outputs as subsequent inputs. An encoder supplies a latent representation in the conditional form; an unconditional variant retains the denoiser without that code. Neither variant requires an iteration index or noise-level input. For fixed conditioning, one learned correction map therefore serves both generation from noise and renewed restoration after perturbation. We interpret this construction geometrically as a time-independent state update, and compare it with time-indexed diffusion and flow models while distinguishing state, noise, and velocity prediction. The resulting landscape intuition does not assume a learned scalar energy or guaranteed convergence. A proof of concept on Pandora's Cluster composes two ReGAE instances to learn image samples and spatial relationships among their representations. The existing evidence motivates a broader discussion of dataset modeling, recursive architectures, and compression.
 \end{abstract}
 
 \input{sections/introduction}
@@ -33,7 +33,7 @@ Regenerative Autoencoders (ReGAE) are a family of models for generating data and
 \input{sections/discussion}
 
 \section{Conclusion}
-ReGAE organizes generation and regeneration around an iteratively reusable denoiser with matching input and output shapes. An encoder supplies a compressed representation in the conditional form; removing that conditioning gives an unconditional member of the same family. Architecture, loss, data dimensionality, and hierarchical organization remain choices of the application. Pandora's Cluster illustrates one such choice: a conditional model learns image samples, and an unconditional model learns spatial relationships among their representations. The broader research question is how reusable regenerative operators can capture different aspects of a dataset, from individual samples to the structure connecting them. The existing implementation offers a concrete starting point, while the extent and reliability of regeneration across applications remain empirical questions.
+ReGAE combines the autoencoding lineage of NCAM with the regeneration objective associated with NCA: after a state is perturbed, the same learned process can be applied to restore it. Its denoiser predicts the desired state directly, with matching input and output shapes and no required noise-level or timestep input. This yields one learned map per fixed code, whose induced displacement field provides a precise interpretation of the landscape intuition. Diffusion and flow models offer closely related descriptions of motion in sample space, but prediction targets and sampling rules must be compared separately. Pandora's Cluster illustrates how conditional and unconditional ReGAE instances can model samples and relationships among their representations. The broader question is how such reusable correction maps capture different aspects of a dataset, and under what conditions their trajectories provide reliable generation and repair.
 
 \paragraph{Data and code.}
 The original notebooks and manuscript sources are available in the \href{https://github.com/magnux/neural_pandoras_cluster}{Neural Pandora's Cluster repository}. The source image is credited to NASA, ESA, CSA, Ivo Labbe (Swinburne), and Rachel Bezanson (University of Pittsburgh), with image processing by Alyssa Pagan (STScI)~\cite{webb}. The experiments use the rendered image as a visual learning problem; generated outputs are not astronomical observations.
@@ -45,6 +45,7 @@ The original notebooks and manuscript sources are available in the \href{https:/
 
 \clearpage
 \appendix
+\input{sections/geometry-notes}
 \input{sections/implementation}
 \input{sections/appendix}
 \end{document}

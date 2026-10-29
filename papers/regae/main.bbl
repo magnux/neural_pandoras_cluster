@@ -1,4 +1,4 @@
-\begin{thebibliography}{17}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -16,6 +16,11 @@ Guillaume Alain and Yoshua Bengio.
 Yoshua Bengio, Li Yao, Guillaume Alain, and Pascal Vincent.
 \newblock Generalized denoising auto-encoders as generative models.
 \newblock In \emph{Advances in Neural Information Processing Systems}, 2013.
+
+\bibitem[Chan(2024)]{chan2024}
+Stanley~H. Chan.
+\newblock Tutorial on diffusion models for imaging and vision, 2024.
+\newblock Version 3, revised January 2025.
 
 \bibitem[Chen et~al.(2018)Chen, Rubanova, Bettencourt, and Duvenaud]{neuralode}
 Ricky T.~Q. Chen, Yulia Rubanova, Jesse Bettencourt, and David Duvenaud.
@@ -53,6 +58,12 @@ Jonathan Ho, Ajay Jain, and Pieter Abbeel.
 Justin Johnson, Alexandre Alahi, and Li Fei-Fei.
 \newblock Perceptual losses for real-time style transfer and super-resolution.
 \newblock In \emph{European Conference on Computer Vision}, 2016.
+
+\bibitem[Lipman et~al.(2023)Lipman, Chen, Ben-Hamu, Nickel, and
+  Le]{flowmatching}
+Yaron Lipman, Ricky T.~Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le.
+\newblock Flow matching for generative modeling.
+\newblock In \emph{International Conference on Learning Representations}, 2023.
 
 \bibitem[Mordvintsev et~al.(2020)Mordvintsev, Randazzo, Niklasson, and
   Levin]{nca}

@@ -1,0 +1,37 @@
+\section{Mathematical Interpretations of the Direct Map}
+\label{sec:geometry-notes}
+
+This appendix records sufficient conditions and algebraic interpretations. None is claimed to have been measured for the archived networks.
+
+\subsection{Hidden corruption level under squared error}
+
+Fix an encoder and let $X$ be a clean training sample, $Z=E_\phi(X)$ its code, $A$ a sampled corruption strength, and $\widetilde{X}=C_A(X,\epsilon)$ the observed state. Under squared-error reconstruction, an unconstrained optimal predictor is the conditional mean
+\begin{equation}
+  D^*(u,z)=\mathbb{E}[X\mid\widetilde{X}=u,Z=z].
+  \label{eq:posterior-state}
+\end{equation}
+Define $\mu_\alpha(u,z)$ as the corresponding conditional mean with $A=\alpha$ also observed. The law of total expectation gives
+\begin{equation}
+  D^*(u,z)=\int \mu_\alpha(u,z)\,
+  P(d\alpha\mid u,z).
+  \label{eq:latent-noise-level}
+\end{equation}
+Here $P(d\alpha\mid u,z)$ is the posterior law of $A$, allowing discrete, continuous, or mixed corruption schedules. Thus omitting the level label entails resolving uncertainty about that level from the state and code. It is a posterior-weighted combination, not uniform averaging of timestep-specific predictors. If the observation is ambiguous, a single map can compromise among compatible explanations. This derivation assumes squared error and an unrestricted predictor; the implemented perceptive loss and latent $L_1$ loss do not automatically yield this conditional-mean formula. It establishes neither a score identity nor an evaluation of the trained networks.
+
+\subsection{A sufficient local repair condition}
+
+Write $D_z(u)=D_\theta(u,z)$ and suppose $u^*$ is a fixed point. If a neighborhood $\mathcal{B}$ is invariant under $D_z$ and, for some $0\leq q<1$,
+\begin{equation}
+  \|D_z(u)-u^*\|\leq q\|u-u^*\|,
+  \qquad u\in\mathcal{B},
+  \label{eq:repair-contraction}
+\end{equation}
+then repeated application gives $\|u_k-u^*\|\leq q^k\|u_0-u^*\|$. In this hypothetical local regime, perturbations that remain in $\mathcal{B}$ are repaired. The scalar $V(u)=\tfrac12\|u-u^*\|^2$ also decreases, since $V(D_z(u))\leq q^2V(u)$. This provides one precise meaning for a basin and its contour lines. Training for reconstruction alone does not prove the condition; the gate bound likewise supplies no contraction bound for the full network.
+
+\subsection{An algebraic Euler connection}
+
+For any direct map, define $\Delta_z(u)=D_z(u)-u$. Euler's rule applied to the constructed autonomous ODE
+\begin{equation}
+  \frac{du}{d\tau}=\Delta_z(u)
+\end{equation}
+with unit step gives exactly $u_{k+1}=D_z(u_k)$. This identifies the discrete update algebraically; it does not establish that a unit step accurately resolves a continuous trajectory. The network is not trained as an ODE velocity or a probability-flow score by this rewriting. In particular, no conservative-field assumption, monotonic energy descent, or agreement with a prescribed probability path follows from it. The implemented operation remains direct state assignment.
