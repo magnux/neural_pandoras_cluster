@@ -17,32 +17,39 @@
   {(B) Time-unconditioned ReGAE};
 \node[anchor=west] at (8.2,4.60)
   {$\Delta_z(x)=D_{\theta}(x,z)-x$: fixed $z$, no explicit $t$};
-% Each thumbnail repeats the SAME state-space domain. They are snapshots
-% at selected times, not a partition of states into different noise bands.
-\foreach \shift/\time/\yc/\dy/\shade in
-  {0/1/2.40/.85/blue,2.55/2/1.55/.02/teal,5.10/3/.75/-.70/violet}{
-  \begin{scope}[shift={(\shift,1.05)}]
-    \path[fill=\shade!2] (0,0) rectangle (2.15,2.92);
-    \begin{scope}
-      \clip (0,0) rectangle (2.15,2.92);
-      \foreach \rx/\ry in {.32/.36,.67/.72,1.05/1.13,1.48/1.57}{
-        \draw[draw=\shade!28,line width=.55pt]
-          (1.60,\yc) ellipse[x radius=\rx cm,y radius=\ry cm];
-      }
-    \end{scope}
-    \draw[frame] (0,0) rectangle (2.15,2.92);
-    \node[font=\sffamily\small] at (1.075,3.20) {$t_{\time}$};
-    \fill[black] (.54,1.40) circle[radius=1.5pt];
-    \node[anchor=east,inner sep=2pt] at (.45,1.40) {$x$};
-    \draw[update,draw=\shade!65!black]
-      (.54,1.40)--(1.45,{1.40+\dy});
-    % Identical coordinate indicators reinforce the common domain.
-    \draw[field] (.17,.15)--(.63,.15);
-    \draw[field] (.17,.15)--(.17,.59);
-  \end{scope}
-}
-\node[smallnote] at (3.63,.60)
-  {Same marked state $x$; time may be continuous.};
+% Same contour geometry and noise-to-target path as the ReGAE panel.
+% Colored bands suggest successive sampling regimes, not disjoint supports.
+\path[fill=orange!14] (0,1.05) rectangle (7.45,3.97);
+\begin{scope}
+  \clip (0,1.05) rectangle (7.45,3.97);
+  \path[fill=violet!13] (5.10,2.30)
+    ellipse[x radius=2.66cm,y radius=1.48cm];
+  \path[fill=teal!16] (5.10,2.30)
+    ellipse[x radius=1.37cm,y radius=.87cm];
+  \foreach \rx/\ry in {.40/.27,.83/.55,1.37/.87,1.99/1.15,2.66/1.48,3.35/1.82}{
+    \draw[contour] (5.10,2.30) ellipse[x radius=\rx cm,y radius=\ry cm];
+  }
+  \draw[field] (1.85,3.36)--(2.56,3.18);
+  \draw[field] (3.76,3.55)--(4.16,3.12);
+  \draw[field] (6.71,1.55)--(6.22,1.86);
+\end{scope}
+\draw[frame] (0,1.05) rectangle (7.45,3.97);
+\draw[update,draw=blue!65!black] (.75,1.48) to[out=4,in=205] (2.05,1.80);
+\draw[update,draw=blue!65!black] (2.05,1.80) to[out=35,in=190] (3.20,2.50);
+\draw[update,draw=blue!65!black] (3.20,2.50) to[out=10,in=165] (4.28,2.47);
+\draw[update,draw=blue!65!black] (4.28,2.47)--(5.10,2.30);
+\fill[blue!65!black] (.75,1.48) circle[radius=1.8pt];
+\node[smallnote,anchor=west,text=blue!65!black] at (.46,1.22)
+  {noise initialization};
+\filldraw[fill=black,draw=white,line width=.5pt]
+  (5.10,2.30) circle[radius=2.3pt];
+\node[smallnote,anchor=north] at (5.10,2.13)
+  {illustrative target};
+\node[font=\sffamily\small,text=orange!65!black] at (1.12,3.60) {$t_1$};
+\node[font=\sffamily\small,text=violet!75!black] at (3.42,2.96) {$t_2$};
+\node[font=\sffamily\small,text=teal!65!black] at (5.18,2.90) {$t_3$};
+\node[smallnote] at (3.73,.60)
+  {Colored bands: successive time-conditioned stages.};
 \draw[black!15,line width=.5pt] (7.75,.35)--(7.75,5.28);
 % A single fixed code-conditioned state-update map. Contours are illustrative
 % guides only; they do not imply that the map is an energy gradient.

@@ -2,15 +2,20 @@
 
 **Regenerative Autoencoders: Generation and Regeneration through Iterative Denoising**
 
-Version 0.3, October 29, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.3.1, November 4, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.3.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.3-source.zip)
+- [Read the revised PDF](regae-draft-v0.3.1.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.3.1-source.zip)
+- [Figure 2 preview](previews/figure2-v0.3.1.png)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
 
-## Changes from version 0.2
+## Changes from version 0.3
+
+Figure 2 now uses matching contour geometry and a matching noise-to-target path in both panels. The time-conditioned panel colors outer, middle, and inner bands for successive sampling stages; the ReGAE panel is preserved. The caption and adjacent sentence explain the schematic comparison and distinguish these illustrative bands from disjoint domains of time-conditioned fields. All other scientific content is unchanged.
+
+## Changes in version 0.3
 
 The abstract and introduction now introduce regeneration through neural cellular automata: growth produces a pattern, persistence maintains it, and regeneration repairs an already developed pattern after damage. The text separates this biological analogy from NCAM's encoder-conditioned growth-program lineage.
 
