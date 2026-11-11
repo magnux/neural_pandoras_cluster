@@ -1,8 +1,8 @@
 # ReGAE paper: proposed narrative and writing design
 
-Proposal 0.1 · November 4, 2026 · For discussion, not an agreed outline.
+Plan 0.2 · November 11, 2026 · General direction accepted; recursive modeling emphasis incorporated for draft v0.4.
 
-The manuscript remains at v0.3.1. This document prepares a complete rewrite; it does not revise the paper or call for new experiments. First agree on the argument and section roles, then reread the full manuscript against that plan.
+The author accepted the proposed direction and requested a complete rewrite, with recursive modeling as the central research ambition. Draft v0.4 follows this plan. It distinguishes the implemented model of encoder-produced representations from the broader hypothesis of modeling computation and learning. No new experiments are part of this revision.
 
 ## What the writing research contributes
 
@@ -21,7 +21,7 @@ These sources do not prescribe one universal section order. Our choice below is 
 
 ## The central message
 
-**Proposed thesis:** ReGAE defines a reusable reconstruction process through direct state prediction without timestep conditioning; its denoising interface supports generation, regeneration, and modeling of learned representations.
+**Working thesis:** ReGAE investigates recursive learning through a reusable reconstruction process: direct state prediction without timestep conditioning supports generation and regeneration, and the same denoising interface can model the system's learned representations. The longer-term hypothesis extends this recursion to computation and learning.
 
 Here, “same interface” means an architectural pattern, not shared weights across levels. Generation and regeneration describe uses of the operator; the extent of successful recovery is an empirical question. The paper should distinguish this construction from any claim of general convergence or superiority.
 
@@ -29,11 +29,11 @@ The intellectual motivation is the author's constructive response to “memoriza
 
 The hierarchy of ideas is:
 
-- **Motivation:** understanding what learning a dataset entails.
+- **Motivation:** understanding what learning a dataset entails, and how a system can make its own learned structure an object of further modeling.
 - **Central contribution:** the ReGAE family and its reusable reconstruction process.
 - **Development of that contribution:** apply the modeling interface to representations produced by another instance.
 - **Concrete case:** Pandora's Cluster, where sample appearance and spatial relationships are distinct parts of the learning problem.
-- **Implications:** a bounded discussion of hierarchical representation, compression, and future recursive modeling.
+- **Research ambition:** extend representation-level self-modeling toward models of computation and learning; discuss the possible relevance to meta-learning and AGI as a hypothesis. Compression remains a related interpretation.
 
 ## The general plot
 
@@ -54,7 +54,7 @@ This is an order of explanation. It is not a claim that the archived v0 and v2 n
 | **2. Regenerative Autoencoders** | What is the reusable mechanism? | Start with an intuitive encoder–state–denoiser example and the loop diagram. Define the latent code and mutable state, direct state prediction, output feedback, and the absence of a timestep input. Explain training with corrupted states, then generation and re-entry after perturbation. Introduce the unconditional variant and distinguish code conditioning from time conditioning. Close with composition: a second instance can model learned representations. Architecture, loss, dimensionality, and hierarchy depth remain configuration choices. |
 | **3. Pandora's Cluster: a worked case study** | What does this design look like when applied to a rich dataset? | Organize around five questions: what information is in the image; what the patch model represents; what spatial information remains unspecified; how the latent model and shifted targets address it; what the existing outputs show. Include overlapping sampling only after its purpose is clear. Separate setup and observations within the section. Present retained evidence at its actual strength and connect reported behavior to existing media when supplied. |
 | **4. Connections to denoising and generative dynamics** | How should I understand the design relative to familiar models? | Give a focused comparison with denoising autoencoders, NCA/NCAM, DiffAE, and diffusion/flow formulations. Organize by prediction target, conditioning, state update, and represented structure. Use the computational-field figure here. Acknowledge shared ideas and specify the combination being proposed; the figure is an interpretation, not evidence of a new energy function. Keep derivations in an appendix. |
-| **5. Discussion — What has been learned?** | What follows from this case, and what remains open? | Return to where information resides: network parameters, sample codes, and learned relationships. Discuss content ambiguity and apparent teleportation as observations plus possible explanations. State the evidence limits together, with short qualifications retained beside claims that need them. Give architectural reuse and compression a concise paragraph each. The goal is to interpret the work without expanding the paper into separate arguments about AGI, efficient coding, or NVD. |
+| **5. Discussion — What has been learned?** | What follows from this case, and what remains open? | Return to where information resides: network parameters, sample codes, and learned relationships. Discuss content ambiguity and apparent teleportation as observations plus possible explanations. State the evidence limits together, with short qualifications retained beside claims that need them. Give recursive self-modeling a substantive subsection that distinguishes the implemented representation model from learning-to-learn and the broader AGI motivation. Keep compression concise and reserve NVD for its own paper. |
 | **6. Conclusion** | What should I remember and be able to reuse? | Restate the reusable reconstruction principle and the role of the case study in a short closing argument. Connect back to the original question. Introduce no new mechanism or claim. |
 | **Appendices** | How can I inspect the implementation and supporting reasoning? | Put exact dimensions, schedules, loss definitions, parameter counts, sampler behavior, archive provenance, training traces, and optional mathematical interpretations here. Preserve the distinction between sufficient mathematical conditions and verified properties of the networks. |
 
@@ -82,17 +82,17 @@ Figure numbering follows the eventual order. The current Figure 2 may move later
 
 The logical need for relational information is different from empirical evidence that a particular Gencoder learned it successfully. The rewrite should make that distinction through precise wording and figure choice, without repeating the entire limitations list after every paragraph.
 
-## Material that needs a smaller role
+## Relative emphasis after the author's feedback
 
 - **Diffusion/ODE geometry:** an explanation and comparison after the core model, with optional mathematical details in an appendix.
 - **Gravity:** a short implementation description; the early “neural black holes” account can remain a labeled historical note. It should not carry the main argument.
 - **Compression:** a brief interpretation of representation and relationship modeling; the broader thesis belongs to the companion essay.
-- **Recursive models and meta-learning:** motivation for future composition. The present hierarchy has separately trained parameters and does not demonstrate self-modeling.
+- **Recursive models and meta-learning:** promoted to the central motivation in the November 11 revision. Define representation-level self-modeling for the composite system, then distinguish it from a model of its parameters, computation, or learning procedure. The current hierarchy does not establish learning-to-learn or AGI.
 - **NVD:** its own paper.
 - **Alternative datasets such as CIFAR-10:** at most one concise example of how composition could change with the dataset; no implication of an experiment.
 
-## Decisions for this outline round
+## Direction accepted for the rewrite
 
-The recommended opening is the constructive memorization question, followed promptly by the ReGAE mechanism. A mechanism-first opening about generation and repair is a viable alternative, but would make dataset learning a later motivation.
+The accepted direction starts from the constructive memorization question, introduces the ReGAE mechanism promptly, and develops recursive representation modeling as the research purpose. The benchmark application supplies a worked case, rather than the ultimate objective.
 
-First agree on the one-sentence thesis, that opening choice, and the section sequence. Next refine the case-study questions and figure roles using the existing evidence. Only then reread the full draft, map its material into the agreed structure, and write the new paper from that outline. The present document proposes a direction; it does not record agreement.
+The v0.4 rewrite follows the section sequence above after rereading the manuscript. The next author review should assess whether the progression and the precise meaning of modeling itself capture the intended idea. Existing case-study media can be added when supplied; the rewrite does not require new experiments.

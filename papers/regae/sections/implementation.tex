@@ -52,6 +52,9 @@ The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gat
 \end{equation}
 Its multiplier therefore lies in $[10^{-4},2+10^{-4}]$. The earlier v0 decoder instead used $\widetilde h=h\odot\exp(g)$. The replacement bounds this particular gain; it does not impose a global activation bound or prove stability under repeated updates. Subsequent transformations can still amplify features. Both $D_\theta$ and the v2 Gencoder use this gated architecture, but the latter receives no separate conditioning vector.
 
+\paragraph{Historical motivation for the bounded gate.}
+The author recalls that the exponential formulation could make bright stars progressively brighter, followed by large dark regions, informally called \emph{neural black holes}. The recordings and checkpoints were not retained. An isolated gain recurrence $h_{k+1}=h_k\exp(g_k)$ gives $h_K=h_0\exp(\sum_{k<K}g_k)$, illustrating a possible amplification mechanism. This does not establish the cause of the reported darkening: no explicit overflow-triggered reset is implemented in the notebooks. The bounded formulation limits this individual multiplier, while the full network's recurrent stability remains a separate question.
+
 \subsection{Shifted latent grids}
 
 Let the source image have height $H$ and width $W$, and define $H_z=\lfloor H/p\rfloor$ and $W_z=\lfloor W/p\rfloor$. With the first stage fixed, we construct $K=4$ offset grids $Z^{(o)}\in\mathbb{R}^{d\times H_z\times W_z}$, $o\in\{0,\ldots,K-1\}$. To match the actual crop helper, their pixel origins are

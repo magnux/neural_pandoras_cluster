@@ -1,43 +1,61 @@
-\section{Related Work}
+\section{Connections to Denoising and Generative Dynamics}
 \label{sec:related}
 
-\paragraph{Regenerative neural dynamics.}
-Growing Neural Cellular Automata distinguish growth, persistence, and regeneration, with damage during training strengthening recovery~\cite{nca}.
-Neural Cellular Automata Manifold (NCAM) extends cellular growth to an autoencoding setting through dynamic convolutions~\cite{ncam}. Its reported code-mutation experiments concern robustness of the encoding; they do not constitute a damaged-state regeneration evaluation.
-ReGAE continues this investigation through conditional denoising autoencoders and an unconditional variant that retains the regenerative operator without an encoder.
-Their state inputs and outputs occupy the same domain and have matching dimensions, enabling repeated application.
-The image implementation studied here uses U-Nets and attention beyond a strictly local cellular rule; these components and the optional latent hierarchy instantiate the broader construction.
+The ReGAE construction sits at the intersection of iterative reconstruction and modeling in learned representation spaces. Its interpretation depends on four choices: what the network predicts, what conditions that prediction, how the output updates the state, and which relationships the state represents.
 
-\paragraph{Denoising as generative modeling.}
-Bengio et al.~\cite{dae} formulate generative Markov chains through alternating corruption and denoising, including walkback training to address spurious modes.
-Alain and Bengio~\cite{alain} connect regularized reconstruction to density scores under specified assumptions.
-ReGAE permits different reconstruction objectives, including $L_1$, $L_2$, and learned-feature losses.
-The present image application uses a VGG-based \emph{perceptive} loss, often termed a perceptual loss~\cite{vgg,perceptual}, while its latent predictor uses $L_1$.
-These choices are application-specific; a score interpretation requires checking the corresponding corruption and loss assumptions.
+\subsection{From cellular growth to reusable denoising}
 
-\paragraph{Diffusion and continuous-time models.}
-Diffusion probabilistic models learn to reverse a prescribed noise process~\cite{ddpm}; DDIM permits deterministic sampling through a related non-Markovian construction~\cite{ddim}.
-Score-based SDEs yield a probability-flow ODE with matching time-marginal distributions under the corresponding score field~\cite{sde}.
-Neural ODEs parameterize continuous-time derivatives and integrate them with differential-equation solvers~\cite{neuralode}.
-Flow Matching learns a time-dependent velocity field along probability paths~\cite{flowmatching}. Chan's tutorial connects signal and noise prediction with numerical sampling, providing a useful account of these geometric relationships~\cite{chan2024}.
-ReGAE directly predicts desired states without explicit noise-time conditioning. Sections~\ref{sec:direct-map} and~\ref{sec:geometry} distinguish this update from noise prediction and velocity integration, without treating any one parameterization as universal to diffusion.
+Growing NCA learns cellular updates that support growth, persistence, and recovery after damage~\cite{nca}. NCAM introduces an encoder-selected growth program for autoencoding~\cite{ncam}. Its code-mutation experiments establish a different form of robustness from a damaged-state recovery evaluation. ReGAE combines this autoencoding lineage with the regeneration objective, using a denoiser over an entire sample or latent window instead of requiring a strictly local cellular rule.
 
-\paragraph{Autoencoding and latent generative structure.}
-Diffusion Autoencoders (DiffAE) are particularly close to ReGAE's conditional autoencoding formulation~\cite{diffae}.
-They combine a learned semantic encoder with a conditional DDIM decoder, representing an image through a 512-dimensional nonspatial semantic vector and a spatial stochastic code.
-Both parts contribute to near-exact reconstruction.
-DiffAE also fits a latent DDIM prior over semantic vectors using a deep multilayer perceptron with skip connections.
-Latent diffusion models likewise perform generative denoising in an autoencoder's representation space~\cite{ldm}.
-In our Pandora's Cluster application, an unconditional ReGAE, the Gencoder, models spatial windows of patch codes and predicts displaced encodings.
-This spatial prediction hierarchy is one composition of the family, and differs from DiffAE's prior over image-level semantic vectors.
+Iterative denoising also has a generative history independent of NCA. Generalized denoising autoencoders define chains that alternate corruption and reconstruction, with walkback training addressing unwanted modes~\cite{dae}. Regularized autoencoders admit connections to density scores under specified assumptions~\cite{alain}. These precedents matter: recurrence and state prediction alone do not establish novelty or a score interpretation. ReGAE proposes a particular reusable interface and studies its composition across representations; its loss and corruption model must be considered when making stronger probabilistic claims.
 
-\paragraph{Learning from a single image.}
-SinGAN learns multiscale patch distributions from one natural image~\cite{singan}.
-Our image case study similarly examines local appearance and spatial organization, using encoded patches and displaced prediction.
-The setting makes the distinction between reconstructing a particular arrangement and generating familiar-looking content visible, without restricting ReGAE to single-image modeling.
+\subsection{Autoencoders and models of latent structure}
 
-\paragraph{Representation and compression.}
-Minimum description length counts both model and data descriptions~\cite{mdl}.
-COIN stores an image through quantized coordinate-network weights~\cite{coin}, while language-model compression connects predictive distributions to explicit coding~\cite{lmcompression}.
-These perspectives inform the interpretation of ReGAE representations.
-An operational compression claim additionally requires accounting for precision, model storage, residual information, and reconstruction distortion.
+Diffusion Autoencoders (DiffAE) provide a close comparison~\cite{diffae}. They pair an image encoder with a conditional DDIM decoder, representing an image through a nonspatial semantic vector and a spatial stochastic code. They also learn a latent diffusion prior over semantic vectors using a multilayer perceptron. Latent diffusion models similarly perform generation in a learned autoencoder space~\cite{ldm}. Thus, adding a latent generator is not by itself the distinctive contribution of ReGAE.
+
+In the Pandora composition, the higher-level model reuses the denoiser architecture family on spatial windows of patch codes, with a displaced prediction target. This makes relationships among encoded local samples the object of learning. SinGAN likewise shows the importance of multiscale structure in single-image modeling~\cite{singan}; the ReGAE case offers a representation-based construction for examining that problem, within a family that is not restricted to images.
+
+\subsection{Prediction targets and update rules}
+\label{sec:targets}
+
+ReGAE directly assigns the predicted target state to the next iterate. A common DDPM formulation instead predicts noise~\cite{ddpm}, but diffusion also permits clean-state prediction~\cite{chan2024}. For the corruption model $u_t=a_t x+b_t\epsilon$, the estimates satisfy
+\begin{equation}
+ \widehat x(u_t,t)=\frac{u_t-b_t\widehat\epsilon_\theta(u_t,t)}{a_t},
+ \qquad a_t\ne0.
+ \label{eq:target-conversion}
+\end{equation}
+The conversion does not make differently weighted training losses identical. Nor does predicting a clean state require assigning that estimate directly at every step: a diffusion sampler uses a scheduled transition. DDIM gives a related construction permitting deterministic sampling~\cite{ddim}.
+
+Flow Matching predicts a velocity along probability paths~\cite{flowmatching}. Its sampler integrates $du/dt=v_\theta(u,t)$, for example with an Euler step $u(t+h)\approx u(t)+h\,v_\theta(u(t),t)$. Neural ODEs also parameterize derivatives for integration~\cite{neuralode}, while score-based diffusion has a probability-flow ODE formulation~\cite{sde}. The useful distinction is the role of the learned output, rather than a requirement that other models use complicated solvers. Table~\ref{tab:targets} separates these choices.
+
+\begin{table*}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{p{0.22\textwidth}p{0.29\textwidth}p{0.41\textwidth}}
+    \toprule
+    Representative formulation & Learned output & Use in sampling \\
+    \midrule
+    ReGAE & Desired state $D_\theta(u,z)$ & Direct assignment: $u_{\mathrm{next}}=D_\theta(u,z)$ \\
+    Diffusion, noise parameterization & Noise estimate $\widehat\epsilon_\theta(u,t)$ & Apply the schedule-dependent transition rule \\
+    Diffusion, state parameterization & Clean-state estimate $\widehat x(u,t)$ & Apply the schedule-dependent transition rule \\
+    Flow Matching & Velocity $v_\theta(u,t)$ & Integrate; Euler gives $u_{\mathrm{next}}=u+h\,v_\theta(u,t)$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Representative prediction targets and update rules~\cite{ddpm,chan2024,flowmatching}. Diffusion has other parameterizations as well. Content conditioning can be supplied in any row; a sample code $z$ and a time input $t$ play different roles.}
+  \label{tab:targets}
+\end{table*}
+
+\subsection{One correction map across corruption levels}
+\label{sec:geometry}
+
+At fixed code, ReGAE applies one displacement field $\Delta_z(u)$ wherever a state occurs. A time-conditioned field $U(u,t)$ can give different updates at that same state. Figure~\ref{fig:time-fields} visualizes the distinction using a common contour landscape. Colored bands associate stages with progress through the illustration; actual time-conditioned fields share the state domain, their state distributions can overlap, and time may be continuous~\cite{sde}. Omitting time provides one clock-free map, not a proof that the map is continuous or defined by a scalar potential.
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/time-fields}
+  \caption{A common illustrative landscape for time-conditioned and time-unconditioned updates. Colored bands in (A) denote successive sampling stages $t_1,t_2,t_3$, not disjoint restrictions on the fields. In (B), a fixed-code ReGAE uses one map from both noise and perturbed states. Contours and paths are constructed illustrations, not measured trajectories, learned energies, or convergence evidence. An external sampling schedule can introduce time dependence even when the neural operator has no time input.}
+  \label{fig:time-fields}
+\end{figure*}
+
+The basin intuition is useful when the desired reconstruction is an attracting fixed point. Reconstruction training alone does not prove that property, and a diffusion or flow trajectory need not end at an equilibrium of its field. Appendix~\ref{sec:geometry-notes} states a sufficient local repair condition and shows how a direct update can be written algebraically as a unit Euler step, without identifying it with a trained probability-flow ODE. In Pandora, the shifted target intentionally creates progression between views. Its external noise-refresh schedule also depends on frame index, although the neural map itself receives no clock.

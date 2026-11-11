@@ -1,93 +1,30 @@
-\section{Discussion}
+\section{Discussion: What Has Been Learned?}
 \label{sec:discussion}
 
-\subsection{Regeneration as a model capability}
+\subsection{Recursive modeling as the research objective}
+\label{sec:recursive-discussion}
 
-The main distinction in ReGAE is that decoding is an operation on an evolving data state. A latent code supplies information about the desired sample, while the denoiser acts on what is currently present. Starting from noise and starting from a perturbed reconstruction invoke the same interface. Regeneration is therefore a continuation of the reconstruction process, rather than a separately defined repair network.
+The purpose of ReGAE is to investigate how a system can internalize data through successive acts of modeling. A first model learns a representation through reconstruction. A subsequent model treats the resulting representations as data, learning structure that was not specified by the first reconstruction objective. The repeated modeling interface is the organizing idea; the astronomical-image task makes it concrete. In this account, understanding is operational: the system can reconstruct represented content and use learned relationships to predict or generate further states.
 
-This is an architectural capability and a training objective, not a guarantee that every perturbation will be reversed. The result depends on the learned operator, the conditioning information, and the corruptions represented during training. In a conditional instance, retaining the code helps specify which sample should be restored. In an unconditional instance, the current state is the only sample-specific cue, so restoration can lead to a different plausible configuration when information has been lost. This distinction is relevant to the Gencoder's reported transitions between visually ambiguous regions.
+The self-reference belongs to the composite system. The Gencoder learns a field produced by its own encoder subsystem, so it models part of the system's internal representation of the data. This is the representation-level sense of \emph{modeling itself} used here. The same denoising construction is used on pixels and on codes, with different parameters and objectives. It supplies a concrete starting point for a recursively extensible architecture, rather than merely a larger network devoted to one image-generation task.
 
-\subsection{Prediction targets and sampling rules}
-\label{sec:targets}
+The motivating hypothesis is that such recursion could eventually extend from representations to models of computation and learning. A system that could represent, predict, and revise how it learns might use its experience more generally. We regard that possibility as relevant to the pursuit of artificial general intelligence. The present contribution makes the representation-level step explicit; it does not establish that this step is sufficient for general intelligence or that increasing the number of levels necessarily improves understanding.
 
-The same sample coordinates can represent a desired state, a noise vector, or a velocity, but those quantities play different roles in an update. ReGAE predicts a corrected state and assigns it directly to the next iterate. A common DDPM parameterization predicts noise~\cite{ddpm}. However, diffusion is not restricted to noise prediction: Chan's tutorial explicitly develops both signal and noise estimates~\cite{chan2024}. For a corruption model
-\begin{equation}
-  u_t=a_t x_{\mathrm{clean}}+b_t\epsilon,
-\end{equation}
-the estimates are related, when $a_t\neq0$, by
-\begin{equation}
-  \widehat{x}_{\mathrm{clean}}(u_t,t)
-  =\frac{u_t-b_t\widehat{\epsilon}_\theta(u_t,t)}{a_t}.
-  \label{eq:target-conversion}
-\end{equation}
-This algebraic conversion does not make training objectives identical without accounting for their weights. A diffusion sampler generally combines its prediction with the current state and schedule-dependent coefficients, and may add noise. Predicting the clean state does not require replacing the current state by that estimate at every step.
+This ambition connects to meta-learning, but the object of learning must be specified. Meta-learning commonly concerns improving the learning procedure through experience over learning episodes~\cite{hospedales2022}; it can include both single-task and multi-task settings. MAML, for example, trains an initialization for effective adaptation after a small number of updates~\cite{finn2017}. The current Gencoder learns relationships among encoder outputs. It neither predicts the encoder's parameter updates nor optimizes a learning procedure. We therefore describe the experiment as representation-level self-modeling and an architectural motivation for meta-learning, rather than a demonstration of learning-to-learn. Extending the object being modeled from representations to the learning process would be a substantive further step.
 
-Flow Matching instead regresses a velocity field along probability paths~\cite{flowmatching}. Sampling integrates
-\begin{equation}
-  \frac{d u(t)}{dt}=v_\theta(u(t),t).
-  \label{eq:flow-ode}
-\end{equation}
-For example, an Euler update is $u(t+h)\approx u(t)+h\,v_\theta(u(t),t)$. Solvers need not be complicated: the distinction is whether the learned output is used as the next state, converted through a scheduled transition, or integrated as a derivative. These choices are summarized in Table~\ref{tab:targets}. Direct state prediction is shared with other denoising formulations; the ReGAE construction combines it with repeated output reuse and absence of a timestep input.
+\subsection{What additional levels can capture}
 
-\begin{table*}[t]
-  \centering
-  \small
-  \setlength{\tabcolsep}{5pt}
-  \begin{tabular}{p{0.22\textwidth}p{0.29\textwidth}p{0.41\textwidth}}
-    \toprule
-    Representative formulation & Learned output & Use in sampling \\
-    \midrule
-    ReGAE & Desired state $D_\theta(u,z)$ & Direct assignment: $u_{\mathrm{next}}=D_\theta(u,z)$ \\
-    Diffusion, noise parameterization & Noise estimate $\widehat{\epsilon}_\theta(u,t)$ & Apply the schedule-dependent transition rule \\
-    Diffusion, state parameterization & Clean-state estimate $\widehat{x}_{\mathrm{clean}}(u,t)$ & Apply the schedule-dependent transition rule \\
-    Flow Matching & Velocity $v_\theta(u,t)$ & Integrate the field; Euler uses $u_{\mathrm{next}}=u+h\,v_\theta(u,t)$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{Prediction targets and update rules are separate design choices~\cite{ddpm,chan2024,flowmatching}. The diffusion rows are alternative parameterizations, not an exhaustive taxonomy; score and other parameterizations also exist. Content conditioning can be supplied in any row. The ReGAE code $z$ is distinct from a time or noise-level input $t$.}
-  \label{tab:targets}
-\end{table*}
+The Pandora decomposition separates information carried by individual codes from dependencies among codes. Keeping the original code arrangement supplies those dependencies externally. Learning a model of that arrangement instead places some of its regularities in the Gencoder's parameters. The reported coherent views are consistent with that intended role; apparent relocations also expose the ambiguity of content-based state updates without a global source address.
 
-\subsection{One correction map and the landscape intuition}
-\label{sec:geometry}
+Further modeling can reveal dependencies in what has been retained, but it cannot guarantee recovery of everything in the original data. If an encoder maps two samples to the same code, a higher-level model given only that code cannot distinguish them without additional context or information. A sequence of lossy representations therefore needs explicit questions about what is preserved at each level. Neither the hierarchy's depth nor visual resemblance alone demonstrates complete dataset understanding.
 
-At fixed $z$, $\Delta_z(u)$ assigns a correction to the state itself, without knowing how many updates preceded it. Generation and repair therefore traverse the same learned map. In a time-conditioned construction, a generic update field $U(u,t)$ can instead assign different directions to the same $u$ at different times. This family of fields is commonly represented by a single neural network with shared weights; it need not be a collection of separate models.
-
-Figure~\ref{fig:time-fields} uses colored contour bands to associate successive time conditions with progression through a landscape; ReGAE applies one correction map throughout that progression. Noise or time conditioning indexes different fields over the \emph{same} state domain. It does not divide that domain into disjoint spatial bands, and time can be continuous~\cite{sde}. Likewise, omitting time does not itself establish continuity: that is a property of the network's operations, and time-conditioned fields can also be continuous. The useful interpretation of one uninterrupted landscape is one correction map jointly trained across sampled corruption levels.
-
-\begin{figure*}[t]
-  \centering
-  \input{figures/time-fields}
-  \caption{Conceptual comparison using the same illustrative landscape. (A) Colored contour bands associate regions of an inward trajectory with successive sampling stages $t_1,t_2,t_3$. They illustrate time conditioning, not disjoint restrictions on each field: the corresponding state distributions can overlap. (B) A fixed-code ReGAE uses one induced displacement field for both noise initialization and a perturbed state. The contours and paths are constructed illustrations, not measured trajectories, learned energies, or evidence of convergence. The comparison concerns the learned operator; an external sampling schedule can still introduce time dependence.}
-  \label{fig:time-fields}
-\end{figure*}
-
-The basin interpretation is useful when a desired reconstruction is an attracting fixed point. It is not a consequence of omitting a clock. A learned vector field need not be the gradient of any scalar energy, and generative transport need not minimize an objective until reaching a stationary state. In particular, a diffusion or flow trajectory's terminal sample need not be an equilibrium of its field. For ReGAE, local contraction would be a sufficient mechanism for repair; Appendix~\ref{sec:geometry-notes} states that condition and an explicit Euler connection as mathematical interpretations, not measured properties.
-
-The distinction between the neural map and the whole sampler also matters. The saved Pandora video routine varies its injected noise with frame index and averages overlapping predictions. Its denoisers do not receive that index, but the resulting stochastic canvas update still depends on time through the external schedule. Moreover, the shifted Gencoder target encourages progression between views, so its intended behavior is not convergence to a single unchanging image.
-
-\subsection{Modeling representations with the same kind of model}
-
-A ReGAE can model a dataset's samples, and another ReGAE can model the resulting representations. Reusing the denoiser family at both levels expresses a hypothesis that reconstruction is a useful operation across different levels of abstraction. The higher level need not be spatial: it should model whatever structure is meaningful in its input representations.
-
-This motivates recursive or fractal organizations of models. The present experiment instantiates two separately trained members of the family, without sharing their weights. It models an encoder's output fields, not the lower model's complete internal computation or learning algorithm. Architectural reuse thus provides a concrete starting point for that broader motivation; it does not by itself demonstrate meta-learning, self-modeling, or general intelligence. The number of levels and the relationships learned at each remain design questions.
-
-\subsection{Learning and compression}
+\subsection{A connection to compression}
 \label{sec:compression}
 
-The memorization question can be restated as a question about where dataset information is stored. Shared parameters describe regularities that recur across samples; individual latent tensors describe sample-specific variation. A further model can learn regularities among those tensors, reducing the relational information that must be supplied explicitly when generating plausible data. In Pandora's Cluster, that information includes spatial organization. In another dataset, it could concern a different distribution or relationship.
+This viewpoint also connects to compression: shared weights describe regularities, sample codes retain variation, and another model can describe relationships among those codes. A minimum-description-length account must count model and data terms together~\cite{mdl}. Prediction and explicit coding can be closely connected~\cite{lmcompression}, but a useful generative hierarchy is not automatically an efficient codec. Actual image compression also needs a coding procedure, precision choices, and a rate--distortion comparison~\cite{coin}. Appendix~\ref{sec:storage} accounts for the archived parameter and latent payloads. The broader intelligence-as-compression hypothesis is a separate interpretive question.
 
-This is a representational compression argument, not yet a claim about a complete image codec. A small code must be interpreted together with the model that decodes it, its numerical precision, and the fidelity of reconstruction. For the present configuration, 3,072 RGB channel values become 256 latent scalars. The factor of 12 in scalar count becomes a factor of three when comparing 8-bit RGB with 32-bit latent values, before including network storage. Appendix~\ref{sec:storage} provides the corresponding payload accounting.
+\subsection{Scope of the present account}
 
-A minimum-description-length view includes both model and data terms~\cite{mdl}. A practical codec additionally needs a coding procedure and a rate--distortion evaluation~\cite{coin}. Learning a generator over codes does not prove that the exact original code arrangement can be discarded without loss. ReGAE provides a concrete setting for studying successive levels of regularity, while the broader intelligence-as-compression interpretation remains a subject for a companion essay.
+The available evidence concerns one two-dimensional case with separately trained representation levels. Training traces establish progress on the implemented objectives; the reported sampling behavior has not yet been accompanied here by the retained media. There is no controlled repair evaluation, comparison of hierarchy depths, or measurement of improved learning across episodes. These limits determine the strength of the empirical conclusions, while the formulation and code make the proposed construction inspectable.
 
-\subsection{Multiplicative gain in the default implementation}
-
-The denoiser used in the proof of concept includes a multiplicative feature branch called \emph{gravity}. It amplifies or attenuates features through a learned gain; the term is an analogy, not a physical law or a requirement of the ReGAE family. The earlier exponential gate allowed unbounded gain. The author recalls stars becoming progressively brighter followed by dark regions, described as \emph{neural black holes}. The associated recordings and checkpoints were not retained.
-
-An isolated gate-only recurrence $h_{t+1}=h_t\exp(g_t)$ accumulates gain as $h_T=h_0\exp(\sum_{t<T}g_t)$, illustrating a possible amplification mechanism. This does not establish the cause of the reported darkening or imply an implemented reset rule. The later bounded activation caps this individual gain. It does not prove stability of the full recurrent network. The precise gate and its placement are documented with the application architecture in Appendix~\ref{sec:implementation}.
-
-\subsection{Scope and next steps}
-
-The general design accommodates conditional and unconditional modeling of one-, two-, or three-dimensional data; the evidence presented here concerns one two-dimensional visual proof of concept. Controlled regeneration measurements, architecture and loss comparisons, and applications to other data types are not part of the current report. One-step denoising training also does not explicitly optimize long-horizon behavior.
-
-The next revision can strengthen the presentation using the existing stills, videos, checkpoints, and run records. No new experiment is required to make the family definition and the reported application precise. Further empirical evaluation can test how broadly the regenerative operator transfers across data representations, which properties are retained at each level, and how reliably perturbations are repaired.
+The next empirical questions follow directly from the design: which relationships each level captures, what information is lost, and when repeated correction repairs or changes a state. The present paper preserves the original exploratory work and its motivation. Its further development can build on existing run artifacts, without making new experiments a prerequisite for documenting the idea.

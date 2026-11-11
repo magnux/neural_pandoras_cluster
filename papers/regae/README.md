@@ -1,17 +1,25 @@
 # ReGAE manuscript — revised draft
 
-**Regenerative Autoencoders: Generation and Regeneration through Iterative Denoising**
+**Regenerative Autoencoders: Recursive Modeling through Reusable Denoising**
 
-Version 0.3.1, November 4, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.4, November 11, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.3.1.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.3.1-source.zip)
-- [Figure 2 preview](previews/figure2-v0.3.1.png)
+- [Read the revised PDF](regae-draft-v0.4.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.4-source.zip)
+- [Representation-modeling schematic](figures/representation-model.tex)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
 
-## Changes from version 0.3
+## Changes from version 0.3.1
+
+The main text has been rewritten around the [accepted narrative direction](https://github.com/magnux/neural_pandoras_cluster/blob/main/docs/regae-narrative-plan.md). It opens with what learning a dataset requires, explains the ReGAE family, develops composition over learned representations, and uses Pandora as a worked case. Detailed comparisons now follow the method and application; implementation details and the historical gravity anecdote remain in the appendices.
+
+The research aim is recursive modeling rather than task-specific benchmark performance. The abstract, introduction, method, discussion, and conclusion now connect modeling data to modeling the composite system's learned representations. The discussion explicitly distinguishes this representation-level self-modeling from learning a learning procedure, while retaining the author's broader meta-learning and AGI motivation. Two references clarify that distinction: Hospedales et al.'s meta-learning survey and Finn et al.'s MAML paper.
+
+A new schematic shows how encoder-generated code fields become data for the Gencoder and how their updates condition image reconstruction. It distinguishes architectural reuse across levels from recurrent state reuse within a level. The existing contour-band comparison is retained and moves to the generative-dynamics section.
+
+## Changes in version 0.3.1
 
 Figure 2 now uses matching contour geometry and a matching noise-to-target path in both panels. The time-conditioned panel colors outer, middle, and inner bands for successive sampling stages; the ReGAE panel is preserved. The caption and adjacent sentence explain the schematic comparison and distinguish these illustrative bands from disjoint domains of time-conditioned fields. All other scientific content is unchanged.
 
@@ -47,13 +55,13 @@ The output is `main.pdf`. Alternatively, `make` builds and copies it to the vers
 
 No training or image-generation experiment was run for this revision. The archived setup uses 256-dimensional codes and a 17,644 × 13,422 source image (236.8 MP); those values describe this proof of concept, not the family. Existing video behavior remains author-reported until the saved media are incorporated. The early exponential-gate instability remains an anecdote whose recordings were not retained.
 
-For the next review, the central questions are whether the NCA-derived regeneration terminology captures the intended idea, whether direct state updates and the absence of time conditioning are clear, and whether the comparison figure conveys the geometric intuition without implying an established energy function or convergence result. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
+For the next review, the central questions are whether the recursive modeling purpose is clear throughout, whether representation-level self-modeling captures the intended meaning of modeling itself, and whether the progression from general family to worked case supports that argument. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
 
 NVD is reserved for its own manuscript, and the broader intelligence-as-compression argument for the companion essay.
 
 ## Figure provenance
 
-`figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
+`figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. `figures/representation-model.tex` is a code-grounded schematic of the Pandora composition, showing separate learned parameters and state reuse. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
 
 | File | Zero-based notebook cell | SHA-256 |
 | --- | --- | --- |

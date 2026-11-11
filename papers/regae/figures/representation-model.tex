@@ -1,0 +1,60 @@
+% Conceptual composition in the Pandora case; not an experimental result.
+% Dashed arrow denotes training data; solid feedback arrows denote state reuse.
+\begin{tikzpicture}[
+  x=1cm,y=1cm,font=\sffamily\footnotesize,
+  >={Latex[length=1.8mm,width=1.2mm]},
+  box/.style={draw=black!45,rounded corners=2pt,line width=.55pt,
+              fill=black!3,align=center,minimum height=.72cm,inner sep=3pt},
+  net/.style={box,draw=blue!55!black,fill=blue!7},
+  flow/.style={->,line width=.75pt,draw=black!75},
+  repeat/.style={->,line width=.85pt,draw=blue!55!black},
+  note/.style={font=\sffamily\scriptsize,text=black!70,align=center}
+]
+\node[anchor=west,font=\sffamily\bfseries\small] at (-.05,4.65)
+  {Data and learned representations};
+\node[anchor=west,font=\sffamily\bfseries\small] at (10.85,4.65)
+  {Modeling representations};
+
+\node[box,text width=2.0cm] (samples) at (1.1,3.65)
+  {Image patches $x_i$};
+\node[net,text width=2.0cm] (encoder) at (4.3,3.65)
+  {Encoder $E_{\phi}$};
+\node[box,minimum width=2.55cm,minimum height=1.12cm] (field) at (8.05,3.65) {};
+\node[font=\sffamily\footnotesize] at (8.05,3.97) {Code field $Z$};
+% A schematic lattice: positions are supplied during field construction.
+\foreach \r in {0,1}{
+  \foreach \c in {0,1,2,3,4}{
+    \pgfmathtruncatemacro{\shade}{12+6*mod(\r+2*\c,4)}
+    \path[draw=blue!30!black,line width=.3pt,fill=blue!\shade]
+      ({7.28+.31*\c},{3.24+.22*\r}) rectangle ++(.28,.19);
+  }
+}
+\node[note] at (8.05,2.91) {Arrangement supplied externally};
+\node[net,text width=2.55cm] (gencoder) at (12.55,3.65)
+  {Latent denoiser $G_{\psi}$\\\scriptsize no external code};
+\draw[flow] (samples)--(encoder);
+\draw[flow] (encoder)--node[note,above]{encode and\\arrange}(field);
+\draw[flow,dashed] (field)--node[note,above,align=center]{training\\windows}(gencoder);
+
+\node[box,text width=2.0cm] (pixels) at (1.1,1.25)
+  {Pixel state $u_k$};
+\node[net,text width=2.0cm] (decoder) at (4.3,1.25)
+  {Image denoiser\\$D_{\theta}$};
+\node[box,text width=2.55cm] (decoded) at (8.05,1.25)
+  {Decoded patch $u_{k+1}$};
+\node[box,text width=2.55cm] (latent) at (12.55,1.25)
+  {Latent state $Z_{k+1}$};
+\draw[flow] (pixels)--(decoder);
+\draw[flow] (decoder)--(decoded);
+\draw[flow] (gencoder)--node[note,right]{state update}(latent);
+\draw[flow] (latent.west)--(10.70,1.25)--(10.70,2.40)
+  --node[note,above]{each code $z_i$ conditions image reconstruction}(4.3,2.40)
+  --(decoder.north);
+\draw[repeat] (latent.east)--(15.05,1.25)--(15.05,3.65)--(gencoder.east);
+\node[note,rotate=90,text=blue!55!black] at (15.30,2.45) {latent-state reuse};
+\draw[repeat,dashed] (decoded.south)--(8.05,.38)
+  --node[note,fill=white,inner sep=2pt,text=blue!55!black]{optional pixel-state reuse}(1.1,.38)
+  --(pixels.south);
+\node[note] at (7.65,-.20)
+  {Across levels: learned codes become data. Within each level: an updated state can be reused.};
+\end{tikzpicture}

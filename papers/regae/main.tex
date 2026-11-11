@@ -6,15 +6,15 @@
 \usetikzlibrary{positioning,arrows.meta,fit,calc}
 \definecolor{linkblue}{RGB}{28,79,124}
 \usepackage[pagebackref,breaklinks,colorlinks,allcolors=linkblue]{hyperref}
-\hypersetup{pdftitle={Regenerative Autoencoders: Generation and Regeneration through Iterative Denoising},pdfauthor={Alejandro Hernandez Ruiz}}
+\hypersetup{pdftitle={Regenerative Autoencoders: Recursive Modeling through Reusable Denoising},pdfauthor={Alejandro Hernandez Ruiz}}
 \hfuzz=0pt
 \vfuzz=0pt
 \hbadness=1000
 \vbadness=1000
 
-\title{Regenerative Autoencoders:\\Generation and Regeneration through Iterative Denoising}
+\title{Regenerative Autoencoders:\\Recursive Modeling through Reusable Denoising}
 \author{Alejandro Hernandez Ruiz\\
-  {\small Revised draft, version 0.3.1 --- November 4, 2026}}
+  {\small Revised draft, version 0.4 --- November 11, 2026}}
 
 \begin{document}
 % Explicit English hyphenation minima for portable TeX formats.
@@ -23,17 +23,17 @@
 \maketitle
 
 \begin{abstract}
-Denoising models learn to correct corrupted data toward a desired state. Neural cellular automata use the biological term \emph{regeneration} for recovery after an already developed pattern is damaged. Building on this viewpoint and the autoencoding lineage of Neural Cellular Automata Manifold, we present Regenerative Autoencoders (ReGAE): a family of generative denoising models that directly predict corrected states and reuse their outputs as subsequent inputs. An encoder supplies a latent representation in the conditional form; an unconditional variant retains the denoiser without that code. Neither variant requires an iteration index or noise-level input. For fixed conditioning, one learned correction map therefore serves both generation from noise and renewed restoration after perturbation. We interpret this construction geometrically as a time-independent state update, and compare it with time-indexed diffusion and flow models while distinguishing state, noise, and velocity prediction. The resulting landscape intuition does not assume a learned scalar energy or guaranteed convergence. A proof of concept on Pandora's Cluster composes two ReGAE instances to learn image samples and spatial relationships among their representations. The existing evidence motivates a broader discussion of dataset modeling, recursive architectures, and compression.
+What must a model learn to reconstruct a dataset and the relationships within it? We investigate this question through Regenerative Autoencoders (ReGAE), a family of models that makes reconstruction a reusable denoising process. Neural cellular automata call recovery after damage \emph{regeneration}; ReGAE adopts this objective within the autoencoding lineage of Neural Cellular Automata Manifold. A denoiser directly predicts a corrected state without timestep conditioning, allowing the same update interface to generate from noise and resume reconstruction after perturbation. A conditional instance uses an encoder-derived code; an unconditional instance can model the resulting representations. This composition makes part of a system's own learned structure the subject of further learning. We present a two-level implementation on Pandora's Cluster, where an image autoencoder represents local patches and a latent denoiser learns spatial relationships through displaced prediction. The archived training records and reported synthesis behavior provide an exploratory account of this construction. The aim is to study recursive representation modeling rather than optimize a particular task benchmark. We frame the implemented hierarchy as representation-level self-modeling and examine its connection to the broader hypothesis that modeling representations, computation, and learning could contribute to more general adaptive intelligence.
 \end{abstract}
 
 \input{sections/introduction}
-\input{sections/related}
 \input{sections/method}
 \input{sections/evidence}
+\input{sections/related}
 \input{sections/discussion}
 
 \section{Conclusion}
-ReGAE combines the autoencoding lineage of NCAM with the regeneration objective associated with NCA: after a state is perturbed, the same learned process can be applied to restore it. Its denoiser predicts the desired state directly, with matching input and output shapes and no required noise-level or timestep input. This yields one learned map per fixed code, whose induced displacement field provides a precise interpretation of the landscape intuition. Diffusion and flow models offer closely related descriptions of motion in sample space, but prediction targets and sampling rules must be compared separately. Pandora's Cluster illustrates how conditional and unconditional ReGAE instances can model samples and relationships among their representations. The broader question is how such reusable correction maps capture different aspects of a dataset, and under what conditions their trajectories provide reliable generation and repair.
+ReGAE treats reconstruction as a process that can be reused: on a noise state, on a damaged reconstruction, and on representations produced by another model. Its direct, time-unconditioned denoising interface provides the common operation. The Pandora implementation makes the composition concrete by learning patch representations and then modeling their spatial structure with another member of the same family. This is a representation-level step toward the broader goal of systems that model what they have learned and eventually how they learn. The contribution is the inspectable construction and the questions it exposes about retained information, relationships, and recursive learning. Establishing how far such recursion supports adaptive intelligence remains an open research direction.
 
 \paragraph{Data and code.}
 The original notebooks and manuscript sources are available in the \href{https://github.com/magnux/neural_pandoras_cluster}{Neural Pandora's Cluster repository}. The source image is credited to NASA, ESA, CSA, Ivo Labbe (Swinburne), and Rachel Bezanson (University of Pittsburgh), with image processing by Alyssa Pagan (STScI)~\cite{webb}. The experiments use the rendered image as a visual learning problem; generated outputs are not astronomical observations.
