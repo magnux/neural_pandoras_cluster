@@ -2,20 +2,24 @@
 
 **Regenerative Autoencoders: Recursive Modeling through Reusable Denoising**
 
-Version 0.4, November 11, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.4.1, November 11, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.4.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.4-source.zip)
+- [Read the revised PDF](regae-draft-v0.4.1.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.4.1-source.zip)
 - [Representation-modeling schematic](figures/representation-model.tex)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
 
-## Changes from version 0.3.1
+## Changes from version 0.4
+
+Corrected the author's intended concept to **meta-modeling** throughout the abstract, introduction, method, discussion, conclusion, and current planning notes. Section 5.1 now develops recursive models of learned representations and the broader AGI hypothesis. The learning-to-learn digression, MAML comparison, and two meta-learning references have been removed. The construction, experiments, and figures are unchanged.
+
+## Changes in version 0.4
 
 The main text has been rewritten around the [accepted narrative direction](https://github.com/magnux/neural_pandoras_cluster/blob/main/docs/regae-narrative-plan.md). It opens with what learning a dataset requires, explains the ReGAE family, develops composition over learned representations, and uses Pandora as a worked case. Detailed comparisons now follow the method and application; implementation details and the historical gravity anecdote remain in the appendices.
 
-The research aim is recursive modeling rather than task-specific benchmark performance. The abstract, introduction, method, discussion, and conclusion now connect modeling data to modeling the composite system's learned representations. The discussion explicitly distinguishes this representation-level self-modeling from learning a learning procedure, while retaining the author's broader meta-learning and AGI motivation. Two references clarify that distinction: Hospedales et al.'s meta-learning survey and Finn et al.'s MAML paper.
+The research aim is recursive modeling rather than task-specific benchmark performance. The abstract, introduction, method, discussion, and conclusion now connect modeling data to modeling the composite system's learned representations. That revision included a meta-learning interpretation that the author subsequently corrected to meta-modeling in v0.4.1; its associated discussion and references have been superseded.
 
 A new schematic shows how encoder-generated code fields become data for the Gencoder and how their updates condition image reconstruction. It distinguishes architectural reuse across levels from recurrent state reuse within a level. The existing contour-band comparison is retained and moves to the generative-dynamics section.
 
@@ -55,7 +59,7 @@ The output is `main.pdf`. Alternatively, `make` builds and copies it to the vers
 
 No training or image-generation experiment was run for this revision. The archived setup uses 256-dimensional codes and a 17,644 × 13,422 source image (236.8 MP); those values describe this proof of concept, not the family. Existing video behavior remains author-reported until the saved media are incorporated. The early exponential-gate instability remains an anecdote whose recordings were not retained.
 
-For the next review, the central questions are whether the recursive modeling purpose is clear throughout, whether representation-level self-modeling captures the intended meaning of modeling itself, and whether the progression from general family to worked case supports that argument. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
+For the next review, the central questions are whether the recursive modeling purpose is clear throughout, whether recursive meta-modeling and representation-level self-modeling capture the intended meaning of modeling itself, and whether the progression from general family to worked case supports that argument. Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
 
 NVD is reserved for its own manuscript, and the broader intelligence-as-compression argument for the companion essay.
 

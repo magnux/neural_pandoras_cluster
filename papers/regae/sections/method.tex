@@ -70,7 +70,7 @@ An unconditional member removes the external code:
 \end{equation}
 Its current state supplies the sample-specific context. Consequently, recovery from an ambiguous state need not identify one particular original sample. Both variants omit time conditioning; only the conditional variant receives $z$. Noise refresh or other interventions between calls are sampling choices outside the neural map.
 
-\subsection{Making representations objects of learning}
+\subsection{Meta-modeling learned representations}
 \label{sec:composition}
 
 After learning $E_\phi$, we can construct a dataset of representations. Let $\mathcal I_j$ index related samples and let $A_j$ assemble their indexed codes according to a supplied layout or relation:
@@ -80,7 +80,7 @@ After learning $E_\phi$, we can construct a dataset of representations. Let $\ma
 \end{equation}
 The selection and assembly specify which relationships training preserves. In the Pandora example, $A_j$ preserves spatial order; a collection of independent images would suggest a different organization. With the encoder fixed, another ReGAE can learn a state update over these tensors. We denote the unconditional instance by $G_\psi$ and call it the Gencoder.
 
-This reuses the modeling interface across levels, with separately trained weights. Within a level, recurrence repeatedly updates a state; across levels, composition makes one model's representations the data of another. Figure~\ref{fig:representation-model} distinguishes these operations. The present construction realizes two levels. Further encoders and denoisers could extend the pattern, with each new representation and objective specified explicitly.
+This meta-modeling step reuses the modeling interface across levels, with separately trained weights. Within a level, recurrence repeatedly updates a state; across levels, composition makes one model's representations the data of another. Figure~\ref{fig:representation-model} distinguishes these operations. The present construction realizes two levels. Further encoders and denoisers could extend the pattern, with each new representation and objective specified explicitly.
 
 The higher-level target can also describe a transition. For related, same-shaped tensors $(R^-,R^+)$, train
 \begin{equation}
@@ -93,6 +93,6 @@ Ordinary restoration sets $R^+=R^-$. The Pandora Gencoder uses a displaced view 
 \begin{figure*}[t]
   \centering
   \input{figures/representation-model}
-  \caption{Making learned representations the subject of further modeling. The encoder produces codes whose arrangement supplies a representation field. A separately trained unconditional Gencoder models windows of that field; its updated codes condition the image denoiser. The feedback loop is recurrence within the latent state. Reuse across levels concerns the denoising interface, not shared weights. In this representation-level sense, the composite system models part of its own learned structure; the schematic does not depict a model of its parameters or learning algorithm.}
+  \caption{Making learned representations the subject of further modeling. The encoder produces codes whose arrangement supplies a representation field. A separately trained unconditional Gencoder models windows of that field; its updated codes condition the image denoiser. The feedback loop is recurrence within the latent state. Reuse across levels concerns the denoising interface, not shared weights. This representation-level meta-modeling makes part of the composite system's learned structure an object of further modeling; the object is the code field, not the network parameters.}
   \label{fig:representation-model}
 \end{figure*}

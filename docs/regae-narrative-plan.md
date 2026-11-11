@@ -1,8 +1,8 @@
 # ReGAE paper: proposed narrative and writing design
 
-Plan 0.2 · November 11, 2026 · General direction accepted; recursive modeling emphasis incorporated for draft v0.4.
+Plan 0.3 · November 11, 2026 · Accepted direction, with the author's meta-modeling terminology corrected for draft v0.4.1.
 
-The author accepted the proposed direction and requested a complete rewrite, with recursive modeling as the central research ambition. Draft v0.4 follows this plan. It distinguishes the implemented model of encoder-produced representations from the broader hypothesis of modeling computation and learning. No new experiments are part of this revision.
+The author accepted the proposed direction and requested a complete rewrite, with recursive modeling as the central research ambition. Draft v0.4 follows this plan, with terminology corrected in v0.4.1. Meta-modeling means learning structure in representations produced by another model; within the composite system, this is representation-level self-modeling. No new experiments are part of this revision.
 
 ## What the writing research contributes
 
@@ -21,7 +21,7 @@ These sources do not prescribe one universal section order. Our choice below is 
 
 ## The central message
 
-**Working thesis:** ReGAE investigates recursive learning through a reusable reconstruction process: direct state prediction without timestep conditioning supports generation and regeneration, and the same denoising interface can model the system's learned representations. The longer-term hypothesis extends this recursion to computation and learning.
+**Working thesis:** ReGAE investigates recursive learning through a reusable reconstruction process: direct state prediction without timestep conditioning supports generation and regeneration, and the same denoising interface can model the system's learned representations. The longer-term hypothesis extends this meta-modeling recursion to reveal further relationships in the system's internal representations and the data they describe.
 
 Here, “same interface” means an architectural pattern, not shared weights across levels. Generation and regeneration describe uses of the operator; the extent of successful recovery is an empirical question. The paper should distinguish this construction from any claim of general convergence or superiority.
 
@@ -33,7 +33,7 @@ The hierarchy of ideas is:
 - **Central contribution:** the ReGAE family and its reusable reconstruction process.
 - **Development of that contribution:** apply the modeling interface to representations produced by another instance.
 - **Concrete case:** Pandora's Cluster, where sample appearance and spatial relationships are distinct parts of the learning problem.
-- **Research ambition:** extend representation-level self-modeling toward models of computation and learning; discuss the possible relevance to meta-learning and AGI as a hypothesis. Compression remains a related interpretation.
+- **Research ambition:** develop recursive meta-modeling of learned representations; discuss its possible relevance to AGI as a hypothesis. Compression remains a related interpretation.
 
 ## The general plot
 
@@ -54,7 +54,7 @@ This is an order of explanation. It is not a claim that the archived v0 and v2 n
 | **2. Regenerative Autoencoders** | What is the reusable mechanism? | Start with an intuitive encoder–state–denoiser example and the loop diagram. Define the latent code and mutable state, direct state prediction, output feedback, and the absence of a timestep input. Explain training with corrupted states, then generation and re-entry after perturbation. Introduce the unconditional variant and distinguish code conditioning from time conditioning. Close with composition: a second instance can model learned representations. Architecture, loss, dimensionality, and hierarchy depth remain configuration choices. |
 | **3. Pandora's Cluster: a worked case study** | What does this design look like when applied to a rich dataset? | Organize around five questions: what information is in the image; what the patch model represents; what spatial information remains unspecified; how the latent model and shifted targets address it; what the existing outputs show. Include overlapping sampling only after its purpose is clear. Separate setup and observations within the section. Present retained evidence at its actual strength and connect reported behavior to existing media when supplied. |
 | **4. Connections to denoising and generative dynamics** | How should I understand the design relative to familiar models? | Give a focused comparison with denoising autoencoders, NCA/NCAM, DiffAE, and diffusion/flow formulations. Organize by prediction target, conditioning, state update, and represented structure. Use the computational-field figure here. Acknowledge shared ideas and specify the combination being proposed; the figure is an interpretation, not evidence of a new energy function. Keep derivations in an appendix. |
-| **5. Discussion — What has been learned?** | What follows from this case, and what remains open? | Return to where information resides: network parameters, sample codes, and learned relationships. Discuss content ambiguity and apparent teleportation as observations plus possible explanations. State the evidence limits together, with short qualifications retained beside claims that need them. Give recursive self-modeling a substantive subsection that distinguishes the implemented representation model from learning-to-learn and the broader AGI motivation. Keep compression concise and reserve NVD for its own paper. |
+| **5. Discussion — What has been learned?** | What follows from this case, and what remains open? | Return to where information resides: network parameters, sample codes, and learned relationships. Discuss content ambiguity and apparent teleportation as observations plus possible explanations. State the evidence limits together, with short qualifications retained beside claims that need them. Give recursive meta-modeling a substantive subsection that explains representation-level self-modeling within the composite system and the broader AGI hypothesis. Keep compression concise and reserve NVD for its own paper. |
 | **6. Conclusion** | What should I remember and be able to reuse? | Restate the reusable reconstruction principle and the role of the case study in a short closing argument. Connect back to the original question. Introduce no new mechanism or claim. |
 | **Appendices** | How can I inspect the implementation and supporting reasoning? | Put exact dimensions, schedules, loss definitions, parameter counts, sampler behavior, archive provenance, training traces, and optional mathematical interpretations here. Preserve the distinction between sufficient mathematical conditions and verified properties of the networks. |
 
@@ -87,7 +87,7 @@ The logical need for relational information is different from empirical evidence
 - **Diffusion/ODE geometry:** an explanation and comparison after the core model, with optional mathematical details in an appendix.
 - **Gravity:** a short implementation description; the early “neural black holes” account can remain a labeled historical note. It should not carry the main argument.
 - **Compression:** a brief interpretation of representation and relationship modeling; the broader thesis belongs to the companion essay.
-- **Recursive models and meta-learning:** promoted to the central motivation in the November 11 revision. Define representation-level self-modeling for the composite system, then distinguish it from a model of its parameters, computation, or learning procedure. The current hierarchy does not establish learning-to-learn or AGI.
+- **Recursive meta-modeling:** central to the November 11 revision, with the author's terminology corrected in v0.4.1. Define it as modeling the structure expressed in learned representations. The composite system thus models part of its own representational structure. Further levels and their possible role in AGI remain a hypothesis.
 - **NVD:** its own paper.
 - **Alternative datasets such as CIFAR-10:** at most one concise example of how composition could change with the dataset; no implication of an experiment.
 

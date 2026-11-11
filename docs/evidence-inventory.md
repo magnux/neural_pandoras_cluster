@@ -40,7 +40,7 @@ This inventory separates what is preserved in the initial archive from recollect
 | Brightening followed by dark regions, called “neural black holes” | Author observation | The author reports no retained evidence. No explicit overflow-triggered zero reset appears in the notebooks. |
 | Numerical instability caused those dark regions | Hypothesis | Plausible from the unbounded gate; the mechanism was not measured. |
 | Larger networks/latent hierarchies compress learned structure | Hypothesis / interpretation | Scalar reduction and weight counts can be calculated; end-to-end codec gains require a rate/distortion definition and are not established here. |
-| Reused architecture could support recursive self-modeling or general intelligence | Hypothesis / motivation | The implementation demonstrates separate learned operators at two representation levels, not meta-learning or a model of its own parameters. |
+| Representation-level meta-modeling and broader recursive self-modeling | Code for the two-level construction; hypothesis for broader capabilities | The Gencoder models encoder-produced fields with separate parameters. This is representation-level self-modeling within the composite system; further recursion and implications for general intelligence remain hypotheses. |
 
 ## NVD claim ledger
 
