@@ -3,12 +3,12 @@
 
 \subsection{Network architectures and their roles}
 
-Two network architectures recur in the ReGAE family. An \emph{encoder} maps a sample to a compact representation; a \emph{denoiser} takes a state and predicts a corrected state of the same shape. What each network does in a model depends on how it is connected and trained. In an autoencoder, the encoder produces the code and the denoiser serves as the \emph{decoder}: it interprets that code to reconstruct the sample. The same encoder architecture could instead feed a classification head that predicts a label. Likewise, a denoiser can generate codes rather than decode them. We call the denoiser in that role the \emph{Gencoder}. Figure~\ref{fig:architecture} shows how a denoiser can operate with or without a separate conditioning code.
+Two network architectures recur in the ReGAE family. An \emph{encoder} maps a sample to a compact representation; a \emph{denoiser} takes a state and predicts a corrected state of the same shape. What each network does in a model depends on how it is connected and trained. In an autoencoder, the encoder produces the code and the denoiser serves as the \emph{decoder}: it interprets that code to reconstruct the sample. The same encoder architecture could instead feed a classification head that predicts a label. Likewise, a denoiser can generate codes rather than decode them. We call the denoiser in that role the \emph{gencoder}. Figure~\ref{fig:architecture} shows how a denoiser can operate with or without a separate conditioning code.
 
 \begin{figure*}[t]
   \centering
   \input{figures/architecture}
-  \caption{Two ways to use the ReGAE denoiser. Top: in an autoencoder, the denoiser acts as a decoder. The code supplies a reference for reconstruction and stays fixed as the state changes. Bottom: without an encoder or a separate code, each prediction depends on the current state alone. In either loop the output can be fed back; reconstruction can resume from a perturbed state.}
+  \caption{Two ways to use the ReGAE denoiser. Top: the decoder takes a changing state and a fixed code from the encoder. Bottom: an unconditional denoiser takes only the changing state. In the Pandora experiment this state is a window of patch codes and the denoiser serves as the gencoder. Both loops feed the prediction back as the next state.}
   \label{fig:architecture}
 \end{figure*}
 
@@ -64,29 +64,31 @@ To train a denoiser without a separate code, we omit the encoder and give the ne
 \end{equation}
 In this unconditional ReGAE, any clues to the identity of the target must come from the state itself. If several samples are compatible with what survives a perturbation, no external code selects between them. Both forms require matching state input and output dimensions, so the same construction applies to one-, two-, or three-dimensional data. We use a U-Net-based denoiser; other architectures that preserve the shape of the state can serve the same roles.
 
-\subsection{The Gencoder: generating learned codes}
+\subsection{Modeling the encoder at its bottleneck}
 \label{sec:composition}
 
-A decoder tells us how to turn a code back into a sample. It does not tell us which codes occur together. We can make that a separate learning problem by fixing the trained encoder and assembling its outputs into new training examples. Let $\mathcal I_j$ index a group of related samples and let $A_j$ record the relation we want to retain:
+The encoder and decoder learn complementary tasks: one produces a code for each patch and the other uses it to reconstruct the patch. To model the encoder's behavior across the dataset, we must choose where to observe it. We could record the activations of an intermediate layer as each patch passes through. We choose the output code because it is a bottleneck by design: it has fewer entries than the patch, yet must carry the distinctions the decoder needs for reconstruction when the pixel state is mostly noise.
+
+We hold the trained encoder fixed, record its code for each sampled patch, and group the codes according to a relationship of interest. Let $\mathcal I_j$ index a group of related samples and let $A_j$ record the relation we want to retain:
 \begin{equation}
  R_j=A_j\bigl((E_\phi(x_i))_{i\in\mathcal I_j}\bigr).
  \label{eq:representation-data}
 \end{equation}
 For an image, $A_j$ can place patch codes in their original spatial order, giving a window of codes $R_j$. For a collection of independent samples, a useful relation might instead be membership in the same class. The choice determines which relationships the next model has an opportunity to learn.
 
-In the Pandora case a second denoiser, $G_\psi$, serves as the Gencoder (Fig.~\ref{fig:representation-model}). Its input and output are both windows of codes, and it receives no separate conditioning code. We train it on pairs of same-shaped windows $(R^-,R^+)$:
+In the Pandora case the second denoiser, $G_\psi$, serves as the gencoder (Fig.~\ref{fig:representation-model}). It learns to predict a window of encoder responses from another such window, without receiving the source pixels or a separate conditioning code. We train it on pairs of same-shaped windows $(R^-,R^+)$:
 \begin{equation}
  \mathcal L_{\mathrm{pair}}=
  \mathbb E\!\left[\ell(G_\psi(C_\alpha(R^-,\epsilon)),R^+)\right].
  \label{eq:family-paired-target}
 \end{equation}
-Choosing $R^+=R^-$ would train it to restore the same view. Instead we take $R^+$ from a slightly displaced view, so the Gencoder must both correct the corruption and predict the next set of codes. Each predicted code can then be rendered by the image decoder.
+Choosing $R^+=R^-$ would train it to restore the same view. Instead we take $R^+$ from a slightly displaced view. The gencoder predicts how the fixed encoder will respond to the patches at those new positions. The decoder can then render each predicted code as pixels.
 
-Two kinds of reuse are at work here. Feeding a prediction back into the same denoiser is recurrence within a single representation. Training another denoiser on the first model's codes is \emph{meta-modeling}: structure expressed in a learned representation becomes the subject of a further model. The two networks reuse the denoising architecture with separately learned parameters.
+This is the \emph{meta-modeling} step: the training targets are observations of another model's behavior on the dataset. It is distinct from feeding a prediction back into the same denoiser, which repeats a learned operation. Here the decoder and gencoder use separate weights and learn different operations, one in pixel space and the other in code space.
 
 \begin{figure*}[t]
   \centering
   \input{figures/representation-model}
-  \caption{Architecture and roles in the Pandora experiment. The encoder maps image patches to codes, which are arranged at their source locations to form training windows. The Gencoder predicts windows of new codes; the decoder interprets each code as an image patch. Both use the denoiser architecture. The final video sampler repeats updates in code space and calls the decoder once per patch.}
+  \caption{The bottleneck is where the second model observes the first. We arrange the encoder's codes at their source locations to make training windows; the gencoder learns to predict the codes the encoder produces for the next view. At sampling time the decoder renders each predicted code as an image patch. The final video sampler repeats updates in code space and calls the decoder once per patch.}
   \label{fig:representation-model}
 \end{figure*}

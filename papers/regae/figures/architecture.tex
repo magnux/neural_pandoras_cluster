@@ -17,15 +17,15 @@
 \node[box,text width=2.1cm] (reference) at (1.1,1.9)
   {Input $x$};
 \node[net,text width=2.1cm] (encoder) at (4.2,1.9)
-  {Encoder $E_{\phi}$};
+  {encoder $E_{\phi}$};
 \node[box,text width=2.1cm] (latent) at (8.2,1.9)
   {Latent tensor $z$};
 \node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-c) at (1.1,.68)
   {Noise or\\damaged state};
 \node[box,text width=2.1cm] (state-c) at (4.2,.68)
   {Input state $u_k$};
-\node[net,text width=2.1cm] (denoise-c) at (8.2,.68)
-  {Denoiser $D_{\theta}$\\{\scriptsize role: decoder}};
+\node[net,text width=2.8cm] (denoise-c) at (8.2,.68)
+  {denoiser $D_{\theta}$\\{\scriptsize Pandora role: decoder}};
 \node[box,text width=2.1cm] (next-c) at (12.7,.68)
   {Next state $u_{k+1}$};
 \draw[flow] (reference)--(encoder);
@@ -44,8 +44,8 @@
   {Noise or\\damaged state};
 \node[box,text width=2.1cm] (state-u) at (4.2,-1.6)
   {Input state $u_k$};
-\node[net,text width=2.1cm] (denoise-u) at (8.2,-1.6)
-  {Denoiser $D_{\psi}$};
+\node[net,text width=2.8cm] (denoise-u) at (8.2,-1.6)
+  {denoiser $D_{\psi}$\\{\scriptsize Pandora role: gencoder}};
 \node[box,text width=2.1cm] (next-u) at (12.7,-1.6)
   {Next state $u_{k+1}$};
 \draw[flow] (noise-u)--(state-u);

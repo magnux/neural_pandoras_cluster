@@ -16,7 +16,7 @@ Let $\mu_\alpha(u,z)$ denote that mean when the decoder also observes $A=\alpha$
   P(d\alpha\mid u,z).
   \label{eq:latent-noise-level}
 \end{equation}
-The posterior law $P(d\alpha\mid u,z)$ weights corruption strengths by how well each explains the observed state and code. If several strengths are plausible, the optimal prediction combines their clean-state estimates in those proportions. This gives a precise interpretation of using one map across levels under squared error. The Pandora decoder uses a perceptual loss and the Gencoder uses an $L_1$ loss; neither is trained to return the conditional mean in Eq.~\eqref{eq:posterior-state}.
+The posterior law $P(d\alpha\mid u,z)$ weights corruption strengths by how well each explains the observed state and code. If several strengths are plausible, the optimal prediction combines their clean-state estimates in those proportions. This gives a precise interpretation of using one map across levels under squared error. The Pandora decoder uses a perceptual loss and the gencoder uses an $L_1$ loss; neither is trained to return the conditional mean in Eq.~\eqref{eq:posterior-state}.
 
 \subsection{When do repeated calls repair a state?}
 

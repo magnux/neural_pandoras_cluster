@@ -4,7 +4,7 @@ Exploratory research on **Regenerative Autoencoders (ReGAE)** and **Neural Vapor
 
 ReGAE is a family of models for generation and regeneration through iterative denoising. A conditional ReGAE combines an encoder with a shape-preserving denoiser; an unconditional variant omits the encoder and external code. The Pandora's Cluster experiments compose two instances to learn image samples and spatial relationships among their representations. NVD investigates progressive parameter-block growth and later structured removal. A companion essay will examine learning through the lens of compression.
 
-This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [revised ReGAE paper draft (v0.5.1)](papers/regae/regae-draft-v0.5.1.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or manuscript drafts.
+This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [revised ReGAE paper draft (v0.6)](papers/regae/regae-draft-v0.6.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or manuscript drafts.
 
 ## Research directions
 
@@ -12,11 +12,11 @@ This repository is a research archive and publication workspace. It preserves fo
 
 A conditional ReGAE encodes a sample into a latent tensor and repeatedly applies a denoiser to a data state. The denoiser has matching input and output shapes, so it can generate from noise and resume reconstruction after perturbation. Its architecture, loss, and data dimensionality are configurable. An unconditional ReGAE retains the recurrent denoiser without an encoder-derived conditioning code.
 
-In the Pandora proof of concept the denoiser serves two roles, with separate weights. As the **decoder**, it interprets an encoder-produced code to reconstruct an image patch. As the **Gencoder**, it predicts a new window of codes for a slightly displaced view. Recurrent, overlapping sampling generates larger image regions without global source-coordinate conditioning. This two-level spatial setup is one application of the family.
+In the Pandora proof of concept the denoiser serves two roles, with separate weights. As the **decoder**, it interprets an encoder-produced code to reconstruct an image patch. As the **gencoder**, it predicts a new window of codes for a slightly displaced view. Recurrent, overlapping sampling generates larger image regions without global source-coordinate conditioning. This two-level spatial setup is one application of the family.
 
-The attached v0 and v2 configurations encode a 32 × 32 RGB patch into 256 values. The v2 Gencoder processes 32 × 32 latent patches, corresponding to 1024 × 1024 decoded pixels. Its saved source-image dimensions are 17,644 × 13,422, approximately 237 megapixels.
+The attached v0 and v2 configurations encode a 32 × 32 RGB patch into 256 values. The v2 gencoder processes 32 × 32 latent patches, corresponding to 1024 × 1024 decoded pixels. Its saved source-image dimensions are 17,644 × 13,422, approximately 237 megapixels.
 
-The research goal is recursive modeling: a system learns data and then makes its learned representations objects of further modeling. The two-level implementation realizes representation-level self-modeling with separate parameters. This is meta-modeling: learning structure in the representations produced by another model. Extending this recursion motivates the connection to general intelligence, whose broader capabilities are not established by this case. The notebooks also contain a learned multiplicative feature gate, called **gravity**, whose bounded formulation replaced an earlier exponential gate.
+If learning a dataset means extracting and organizing its information, reconstruction gives us a way to ask what was preserved. ReGAE takes a further step: the gencoder models how the fixed encoder responds to patches across the mosaic. The patch code is a deliberate place to observe that behavior because it is the compact representation from which the decoder must reconstruct each patch. This is the paper's case of meta-modeling. The notebooks also contain a learned multiplicative feature gate, called **gravity**, whose bounded formulation replaced an earlier exponential gate.
 
 ### Neural Vapor Deposition
 
@@ -32,9 +32,9 @@ The connecting essay will distinguish compact representations, total model-and-d
 
 | Path | Contents |
 | --- | --- |
-| [papers/regae/](papers/regae/) | ReGAE revised draft (v0.5.1), LaTeX sources, references, figures, and prior versions |
+| [papers/regae/](papers/regae/) | ReGAE revised draft (v0.6), LaTeX sources, references, figures, and prior versions |
 | [notebooks/](notebooks/) | Four original notebook snapshots, provenance notes, and SHA-256 checksums |
-| [docs/regae-narrative-plan.md](docs/regae-narrative-plan.md) | Writing direction for the paper, including the v0.5 reconstruction-first opening and network terminology |
+| [docs/regae-narrative-plan.md](docs/regae-narrative-plan.md) | Writing direction for the paper, including the information motivation and the use of encoder responses for meta-modeling |
 | [docs/publication-roadmap.md](docs/publication-roadmap.md) | Publication scope, outlines, proposed figures, and related work |
 | [docs/regae-notes.md](docs/regae-notes.md) | ReGAE architecture, DiffAE comparison, gravity, and code observations |
 | [docs/nvd-notes.md](docs/nvd-notes.md) | NVD operators, schedules, evidence, and implementation caveats |

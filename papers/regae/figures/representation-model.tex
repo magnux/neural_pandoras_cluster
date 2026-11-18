@@ -11,14 +11,14 @@
   note/.style={font=\sffamily\scriptsize,text=black!70,align=center}
 ]
 \node[anchor=west,font=\sffamily\bfseries\small] at (-.05,4.65)
-  {Data and learned representations};
+  {Encoding the patches};
 \node[anchor=west,font=\sffamily\bfseries\small] at (10.85,4.65)
-  {Modeling representations};
+  {Predicting encoder responses};
 
 \node[box,text width=2.0cm] (samples) at (1.1,3.65)
   {Image patches $x_i$};
 \node[net,text width=2.0cm] (encoder) at (4.3,3.65)
-  {Encoder $E_{\phi}$};
+  {encoder $E_{\phi}$};
 \node[box,minimum width=2.55cm,minimum height=1.12cm] (field) at (8.05,3.65) {};
 \node[font=\sffamily\footnotesize] at (8.05,3.97) {Code field $Z$};
 % A schematic lattice: positions are supplied during field construction.
@@ -31,7 +31,7 @@
 }
 \node[note] at (8.05,2.91) {Arrangement supplied externally};
 \node[net,text width=2.55cm] (gencoder) at (12.55,3.65)
-  {Gencoder $G_{\psi}$\\{\scriptsize denoiser on codes}};
+  {gencoder $G_{\psi}$\\{\scriptsize denoiser on codes}};
 \draw[flow] (samples)--(encoder);
 \draw[flow] (encoder)--node[note,above]{arrange\\codes}(field);
 \draw[flow,dashed] (field)--node[note,above,align=center]{training\\windows}(gencoder);
@@ -39,7 +39,7 @@
 \node[box,text width=2.0cm] (pixels) at (1.1,1.25)
   {Pixel state $u_k$};
 \node[net,text width=2.0cm] (decoder) at (4.3,1.25)
-  {Decoder $D_{\theta}$\\{\scriptsize denoiser on pixels}};
+  {decoder $D_{\theta}$\\{\scriptsize denoiser on pixels}};
 \node[box,text width=2.55cm] (decoded) at (8.05,1.25)
   {Decoded patch $u_{k+1}$};
 \node[box,text width=2.55cm] (latent) at (12.55,1.25)

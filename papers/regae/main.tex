@@ -14,7 +14,7 @@
 
 \title{Regenerative Autoencoders:\\Recursive Modeling through Reusable Denoising}
 \author{Alejandro Hernandez Ruiz\\
-  {\small Revised draft, version 0.5.1 --- November 18, 2026}}
+  {\small Revised draft, version 0.6 --- November 18, 2026}}
 
 \begin{document}
 % Explicit English hyphenation minima for portable TeX formats.
@@ -26,7 +26,7 @@
 \noindent\begin{minipage}[c]{.622\textwidth}
 
 \begin{abstract}
-A model could reconstruct every patch of a photograph and still be unable to put the photograph back together. We use this distinction to ask what it takes to learn a dataset through reconstruction. Regenerative Autoencoders (ReGAE) are a family of models that reconstruct a sample by repeated denoising. If the reconstruction is damaged, the same denoiser can be reapplied to repair it; we call this \emph{regeneration}. We apply ReGAE to a 237-megapixel James Webb Space Telescope image of Pandora's Cluster, a cluster of galaxies. One model learns to reconstruct small patches; a second learns how their representations change as the view shifts across the image. In exploratory runs, we observed plausible star fields when sampling patches alone. With the second model, the sampled views remained coherent over larger regions, although they sometimes appeared to jump between locations. The example illustrates how one model's representation can become the data for another.
+A model could reconstruct every patch of a photograph and still be unable to put the photograph back together. We study this distinction with Regenerative Autoencoders (ReGAE), a family of models that reconstruct a sample by repeated denoising. After a reconstruction is damaged, the same denoiser can be applied again to repair it, a process we call \emph{regeneration}. Our example is a 237-megapixel James Webb Space Telescope image of Pandora's Cluster, a cluster of galaxies. A first model learns to reconstruct individual patches; a second learns the large-scale structure of the mosaic. In this hierarchy, the first model's responses to the image become the data for the second.
 \end{abstract}
 \end{minipage}\hfill
 \begin{minipage}[c]{.324\textwidth}
@@ -44,7 +44,7 @@ A model could reconstruct every patch of a photograph and still be unable to put
 \input{sections/discussion}
 
 \section{Conclusion}
-Return to the shuffled photograph. A decoder can reproduce each patch from its code, yet recovering the photograph also requires knowing where the patches belong. Saving their order supplies that knowledge; training on their neighborhoods asks a model to acquire some of it. ReGAE lets us pose both problems with the same denoising architecture. As a decoder it reconstructs pixels from a patch code and can resume after damage. As a Gencoder it predicts a neighboring view in the space of patch codes. The reported jumps between apparently plausible views expose the remaining distinction: predicting what could come next is a weaker requirement than recovering what was there. Asking what information a new level captures, and what still has to be supplied, gives recursive meta-modeling a concrete research question.
+ReGAE uses a denoiser to reconstruct a sample and to resume that reconstruction after damage. In the Pandora mosaic, the same architecture serves a second purpose. The decoder uses the code of a patch to reconstruct its pixels. The gencoder uses a neighborhood of codes to predict what the encoder would produce for the next view. This turns one aspect of the first model's behavior into a learning problem in its own right. The distinction matters when a generated view is plausible but the trajectory appears to lose its place: the models can preserve what a region looks like while leaving its location unresolved. That remaining ambiguity gives a concrete question for a further level of modeling.
 
 \paragraph{Data and code.}
 The original notebooks and manuscript sources are available in the \href{https://github.com/magnux/neural_pandoras_cluster}{Neural Pandora's Cluster repository}. The opening puzzle uses an AI-generated galaxy illustration. The telescope mosaic is credited to NASA, ESA, CSA, Ivo Labbe (Swinburne), and Rachel Bezanson (University of Pittsburgh), with image processing by Alyssa Pagan (STScI)~\cite{webb}. The experiments use the rendered image as a visual learning problem; generated outputs are not astronomical observations.
@@ -54,7 +54,7 @@ The original notebooks and manuscript sources are available in the \href{https:/
 \bibliography{references}
 }
 
-\clearpage
+% Continue into the appendices after the final references.
 \appendix
 \input{sections/geometry-notes}
 \input{sections/implementation}

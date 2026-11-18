@@ -5,10 +5,10 @@
 The repository preserves the original v0 and v2 notebooks and their SHA-256 hashes. We describe the implementation from the code and saved outputs of v2; v0 records earlier architecture and sampler designs. We did not rerun training or generation.
 
 \paragraph{Stage boundaries.}
-In v2, two instances of the class \texttt{Decoder} implement the same denoiser design with different state spaces. One reads and writes three RGB channels and takes a separate patch code: this instance is the image decoder. The other reads and writes 256 latent channels and has no conditioning input: this instance is the Gencoder. The encoder and image decoder train together. Their weights remain fixed while the Gencoder fits the code windows.
+In v2, two instances of the class \texttt{Decoder} implement the same denoiser design with different state spaces. One reads and writes three RGB channels and takes a separate patch code: this instance is the image decoder. The other reads and writes 256 latent channels and has no conditioning input: this instance is the gencoder. The encoder and image decoder train together. Their weights remain fixed while the gencoder fits the code windows.
 
 \paragraph{Optimization and reproducibility.}
-The recorded environment reports PyTorch 2.2.2 with CUDA 12.1, and the code sets a random seed of 4202. The original GPU, elapsed training time, and complete execution history are not recorded. One detail matters for reproducing the second stage: the v2 Gencoder loop computes a decaying learning rate but assigns it to the autoencoder optimizer. The Gencoder optimizer therefore does not receive the scheduled decay.
+The recorded environment reports PyTorch 2.2.2 with CUDA 12.1, and the code sets a random seed of 4202. The original GPU, elapsed training time, and complete execution history are not recorded. One detail matters for reproducing the second stage: the v2 gencoder loop computes a decaying learning rate but assigns it to the autoencoder optimizer. The gencoder optimizer therefore does not receive the scheduled decay.
 
 \paragraph{Exploratory sampling in v0.}
 The earlier notebook includes reconstruction from observed patch codes, generation of new codes, random updates of overlapping patches, repeated local refinement, and shifted raster sweeps. Some updates protect previously completed pixels or use update-budget masks. The shifted sweeps draw on an analogy with wave function collapse in procedural synthesis. The cells do not implement a documented entropy-ranked constraint-propagation algorithm, and their current channel and conditioning assumptions are not mutually consistent with all retained network definitions. The notebook consequently does not preserve a controlled comparison of the strategies. The later v2 synchronous overlap average is specified explicitly in Eq.~\eqref{eq:regae-overlap-update}.
@@ -22,7 +22,7 @@ The training plots below are embedded in v2. The notebook does not contain the s
 \section{Storage Accounting for the Proof of Concept}
 \label{sec:storage}
 
-The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the image decoder, and 85,479,680 for the Gencoder. Each patch contains 3,072 eight-bit channel values; its 256 floating-point code values use one third as many bytes at FP32 precision. To reconstruct the patches from an ordered code grid, one must also store the decoder. Table~\ref{tab:storage} separates these uncompressed payloads in decimal megabytes; it does not assign a bitrate at a given distortion.
+The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the image decoder, and 85,479,680 for the gencoder. Each patch contains 3,072 eight-bit channel values; its 256 floating-point code values use one third as many bytes at FP32 precision. To reconstruct the patches from an ordered code grid, one must also store the decoder. Table~\ref{tab:storage} separates these uncompressed payloads in decimal megabytes; it does not assign a bitrate at a given distortion.
 
 \begin{table}[t]
   \centering
@@ -35,16 +35,16 @@ The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the im
     Source RGB array, 8 bits per channel & 710.45 \\
     One $419\times551\times256$ grid, FP32 & 236.41 \\
     Image encoder and decoder, FP32 & 222.64 \\
-    Gencoder, FP32 & 341.92 \\
+    Latent gencoder, FP32 & 341.92 \\
     Image decoder plus one grid, FP32 & 440.36 \\
-    AE and Gencoder parameters, FP32 & 564.56 \\
+    AE and gencoder parameters, FP32 & 564.56 \\
     \bottomrule
   \end{tabular}
   \caption{Calculated uncompressed payloads for the Pandora setup. Rows describe different accounting choices, not interchangeable complete codecs. Optimizer state and file overhead are excluded. The four shifted training grids occupy approximately 945.64 MB in FP32.}
   \label{tab:storage}
 \end{table}
 
-AMSGrad stores three moment-related tensors per parameter in addition to the weights. Including these tensors in FP32 can bring training checkpoints near the author's recalled 0.89 GB for the AE and 1.4 GB for the Gencoder. This is an inference from the optimizer and parameter counts, not a measurement of the unavailable checkpoint files. A storage comparison with JPEG or another codec would also need quantization, coding, model costs, and matched reconstruction distortion.
+AMSGrad stores three moment-related tensors per parameter in addition to the weights. Including these tensors in FP32 can bring training checkpoints near the author's recalled 0.89 GB for the AE and 1.4 GB for the gencoder. This is an inference from the optimizer and parameter counts, not a measurement of the unavailable checkpoint files. A storage comparison with JPEG or another codec would also need quantization, coding, model costs, and matched reconstruction distortion.
 
 \section{Preserved Training Plots}
 \label{sec:traces}
@@ -60,6 +60,6 @@ The plots reproduce unchanged PNGs from the archived v2 outputs. Their horizonta
 \begin{figure*}[t]
   \centering
   \includegraphics[width=0.86\textwidth]{figures/gencoder-training.png}
-  \caption{Saved Gencoder training display (v2, code cell 46 under zero-based notebook indexing). The summary reports minimum 0.235, current 0.252, and maximum 0.458. The displayed quantity is the square root of the latent $L_1$ prediction loss. No new training was run to produce this figure.}
+  \caption{Saved gencoder training display (v2, code cell 46 under zero-based notebook indexing). The summary reports minimum 0.235, current 0.252, and maximum 0.458. The displayed quantity is the square root of the latent $L_1$ prediction loss. No new training was run to produce this figure.}
   \label{fig:gencoder-trace}
 \end{figure*}
