@@ -2,14 +2,19 @@
 
 **Regenerative Autoencoders: Recursive Modeling through Reusable Denoising**
 
-Version 0.5, November 18, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.5.1, November 18, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.5.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.5-source.zip)
+- [Read the revised PDF](regae-draft-v0.5.1.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.5.1-source.zip)
+- [Sliding-tile galaxy illustration](https://github.com/magnux/neural_pandoras_cluster/blob/main/papers/regae/previews/galaxy-puzzle-v0.5.1.png)
 - [Representation-modeling schematic](figures/representation-model.tex)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.5 PDF](regae-draft-v0.5.pdf) and [v0.5 sources](regae-draft-v0.5-source.zip); [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+
+## Changes in version 0.5.1
+
+A small sliding-tile galaxy alongside the abstract illustrates the difference between reconstructing individual patches and learning how they fit together. It is an unnumbered illustration; the experimental figures and their numbering are unchanged.
 
 ## Changes in version 0.5
 
@@ -70,6 +75,8 @@ For review: does the shuffled-patch example explain why reconstructing samples l
 NVD is reserved for its own manuscript, and the broader intelligence-as-compression argument for the companion essay.
 
 ## Figure provenance
+
+The sliding-tile puzzle uses an original AI-generated illustration of a spiral galaxy (`figures/galaxy-art.jpg`). It is neither a JWST observation nor a ReGAE output. The TikZ source (`figures/galaxy-puzzle.tex`) cuts one image into squares and places them without rotation. Starting from a solved 4 × 4 board with the bottom-right square empty, moving the vacancy left, up, right, up, left, then down gives the arrangement in the paper.
 
 `figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. `figures/representation-model.tex` is a code-grounded schematic of the Pandora composition, showing separate learned parameters and state reuse. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
 
