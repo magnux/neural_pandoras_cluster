@@ -12,11 +12,11 @@
 \node[anchor=west,font=\sffamily\bfseries\small] at (0,5.05)
   {(A) Time-conditioned field};
 \node[anchor=west] at (0,4.60)
-  {$U(x,t)$: the time input can change the update};
+  {$U(u,t)$: the time input can change the update};
 \node[anchor=west,font=\sffamily\bfseries\small] at (8.2,5.05)
-  {(B) Time-unconditioned ReGAE};
+  {(B) ReGAE decoder without a time input};
 \node[anchor=west] at (8.2,4.60)
-  {$\Delta_z(x)=D_{\theta}(x,z)-x$: fixed $z$, no explicit $t$};
+  {$\Delta_z(u)=D_{\theta}(u,z)-u$: fixed code $z$};
 % Same contour geometry and noise-to-target path as the ReGAE panel.
 % Colored bands suggest successive sampling regimes, not disjoint supports.
 \path[fill=orange!14] (0,1.05) rectangle (7.45,3.97);

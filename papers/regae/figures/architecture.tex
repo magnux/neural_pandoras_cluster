@@ -21,13 +21,13 @@
 \node[box,text width=2.1cm] (latent) at (8.2,1.9)
   {Latent tensor $z$};
 \node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-c) at (1.1,.68)
-  {Noise initialization\\or perturbation};
+  {Noise or\\damaged state};
 \node[box,text width=2.1cm] (state-c) at (4.2,.68)
-  {Input state $x_k$};
+  {Input state $u_k$};
 \node[net,text width=2.1cm] (denoise-c) at (8.2,.68)
-  {Denoiser $D_{\theta}$};
+  {Denoiser $D_{\theta}$\\{\scriptsize role: decoder}};
 \node[box,text width=2.1cm] (next-c) at (12.7,.68)
-  {Next state $x_{k+1}$};
+  {Next state $u_{k+1}$};
 \draw[flow] (reference)--(encoder);
 \draw[flow] (encoder)--(latent);
 \draw[flow] (latent)--node[note,right]{conditions}(denoise-c);
@@ -41,7 +41,7 @@
 \node[anchor=west,font=\sffamily\bfseries\small] at (-.1,-.9)
   {Unconditional ReGAE};
 \node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-u) at (1.1,-1.6)
-  {Noise initialization\\or perturbation};
+  {Noise or\\damaged state};
 \node[box,text width=2.1cm] (state-u) at (4.2,-1.6)
   {Input state $u_k$};
 \node[net,text width=2.1cm] (denoise-u) at (8.2,-1.6)
@@ -54,5 +54,5 @@
 \draw[feedback] (next-u.south)--(12.7,-2.3)
   --node[note,fill=white,inner sep=2pt]{repeat}(4.2,-2.3)--(state-u.south);
 \node[note] at (7.0,-2.9)
-  {Denoisers preserve input/output shape; states can be 1D, 2D, or 3D data or latent representations.};
+  {The updated state has the same shape as the input state.};
 \end{tikzpicture}

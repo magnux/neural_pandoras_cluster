@@ -1,37 +1,37 @@
 \section{Mathematical Interpretations of the Direct Map}
 \label{sec:geometry-notes}
 
-This appendix records sufficient conditions and algebraic interpretations. None is claimed to have been measured for the archived networks.
+The following three observations separate properties of a direct prediction rule from properties that would require evidence about a trained decoder.
 
-\subsection{Hidden corruption level under squared error}
+\subsection{What can a decoder infer without a noise level?}
 
-Fix an encoder and let $X$ be a clean training sample, $Z=E_\phi(X)$ its code, $A$ a sampled corruption strength, and $\widetilde{X}=C_A(X,\epsilon)$ the observed state. Under squared-error reconstruction, an unconstrained optimal predictor is the conditional mean
+Fix the encoder and let $X$ be a clean training sample, $Z=E_\phi(X)$ its code, $A$ a random corruption strength, and $\widetilde{X}=C_A(X,\epsilon)$ the state presented to the decoder. Under squared-error reconstruction, an unrestricted optimal predictor is the conditional mean
 \begin{equation}
   D^*(u,z)=\mathbb{E}[X\mid\widetilde{X}=u,Z=z].
   \label{eq:posterior-state}
 \end{equation}
-Define $\mu_\alpha(u,z)$ as the corresponding conditional mean with $A=\alpha$ also observed. The law of total expectation gives
+Let $\mu_\alpha(u,z)$ denote that mean when the decoder also observes $A=\alpha$. The law of total expectation gives
 \begin{equation}
   D^*(u,z)=\int \mu_\alpha(u,z)\,
   P(d\alpha\mid u,z).
   \label{eq:latent-noise-level}
 \end{equation}
-Here $P(d\alpha\mid u,z)$ is the posterior law of $A$, allowing discrete, continuous, or mixed corruption schedules. Thus omitting the level label entails resolving uncertainty about that level from the state and code. It is a posterior-weighted combination, not uniform averaging of timestep-specific predictors. If the observation is ambiguous, a single map can compromise among compatible explanations. This derivation assumes squared error and an unrestricted predictor; the implemented perceptive loss and latent $L_1$ loss do not automatically yield this conditional-mean formula. It establishes neither a score identity nor an evaluation of the trained networks.
+The posterior law $P(d\alpha\mid u,z)$ weights corruption strengths by how well each explains the observed state and code. If several strengths are plausible, the optimal prediction combines their clean-state estimates in those proportions. This gives a precise interpretation of using one map across levels under squared error. The Pandora decoder uses a perceptual loss and the Gencoder uses an $L_1$ loss; neither is trained to return the conditional mean in Eq.~\eqref{eq:posterior-state}.
 
-\subsection{A sufficient local repair condition}
+\subsection{When do repeated calls repair a state?}
 
-Write $D_z(u)=D_\theta(u,z)$ and suppose $u^*$ is a fixed point. If a neighborhood $\mathcal{B}$ is invariant under $D_z$ and, for some $0\leq q<1$,
+Write $D_z(u)=D_\theta(u,z)$ for the decoder with code $z$ held fixed. Suppose a desired reconstruction $u^*$ is a fixed point: $D_z(u^*)=u^*$. If a neighborhood $\mathcal{B}$ is invariant under $D_z$ and there is a constant $0\leq q<1$ such that
 \begin{equation}
   \|D_z(u)-u^*\|\leq q\|u-u^*\|,
   \qquad u\in\mathcal{B},
   \label{eq:repair-contraction}
 \end{equation}
-then repeated application gives $\|u_k-u^*\|\leq q^k\|u_0-u^*\|$. In this hypothetical local regime, perturbations that remain in $\mathcal{B}$ are repaired. The scalar $V(u)=\tfrac12\|u-u^*\|^2$ also decreases, since $V(D_z(u))\leq q^2V(u)$. This provides one precise meaning for a basin and its contour lines. Training for reconstruction alone does not prove the condition; the gate bound likewise supplies no contraction bound for the full network.
+then $\|u_k-u^*\|\leq q^k\|u_0-u^*\|$. A perturbation that leaves the state inside $\mathcal{B}$ can therefore be repaired by repeated calls to the decoder. The scalar $V(u)=\tfrac12\|u-u^*\|^2$ gives the basin illustration a precise reading: after one update, $V(D_z(u))\leq q^2 V(u)$. This is a sufficient local condition, not a consequence of the reconstruction objective. The bound on one multiplicative gate in the Pandora denoiser also gives no such bound for the whole network.
 
-\subsection{An algebraic Euler connection}
+\subsection{In what sense is a direct update an Euler step?}
 
-For any direct map, define $\Delta_z(u)=D_z(u)-u$. Euler's rule applied to the constructed autonomous ODE
+For any direct map $D_z$, define $\Delta_z(u)=D_z(u)-u$. Construct the autonomous ODE
 \begin{equation}
-  \frac{du}{d\tau}=\Delta_z(u)
+  \frac{du}{d\tau}=\Delta_z(u).
 \end{equation}
-with unit step gives exactly $u_{k+1}=D_z(u_k)$. This identifies the discrete update algebraically; it does not establish that a unit step accurately resolves a continuous trajectory. The network is not trained as an ODE velocity or a probability-flow score by this rewriting. In particular, no conservative-field assumption, monotonic energy descent, or agreement with a prescribed probability path follows from it. The implemented operation remains direct state assignment.
+One Euler step of length one then gives $u_{k+1}=u_k+\Delta_z(u_k)=D_z(u_k)$. This algebraic identity holds for any state map. It says nothing about how accurately the discrete iterates follow a continuous trajectory, whether $\Delta_z$ is the gradient of a potential, or whether the trajectory follows a probability-flow ODE. In ReGAE the denoiser is trained on the target state itself.

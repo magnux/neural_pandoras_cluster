@@ -1,7 +1,7 @@
 \section{Pandora Implementation Details}
 \label{sec:implementation}
 
-This appendix specifies the archived v2 proof of concept. Its dimensions, corruption schedule, losses, shifted grids, and video routine are application choices within the family defined in Sec.~\ref{sec:method}. In particular, the final routine repeatedly updates latent states while using one image-denoiser call per rendered patch. That shortcut does not define or limit the recurrent conditional interface.
+The v2 notebook trains two denoisers for different roles. The image decoder reconstructs pixels from the encoder's code. The Gencoder predicts a displaced window of those codes, and it is this second network that runs recurrently in the final video sampler. The following details specify how the notebook trains and connects them.
 
 \subsection{Patch representation and denoising objective}
 
@@ -22,7 +22,7 @@ The implementation samples $k$ uniformly from $\{0,\ldots,7\}$ and $u$ uniformly
 \end{equation}
 Thus training includes nearly clean inputs and inputs dominated by noise. Within each batch, the second half reuses the first half's noise with opposite sign and the same corruption coefficients, paired with separately sampled clean patches. Neither $k$ nor $\alpha$ is supplied explicitly to the network. This linear mixture is a corruption schedule, not an assertion of the variance-preserving forward process used in standard diffusion formulations.
 
-The jointly optimized encoder and decoder minimize
+The encoder and image decoder minimize
 \begin{equation}
   \mathcal{L}_{\mathrm{AE}}
   =\mathbb{E}_{x,\alpha,\epsilon}\!\left[
@@ -38,11 +38,11 @@ Here $\ell_{\mathrm{perc}}(a,b)$ sums the mean absolute feature differences from
     \frac{\|\Phi_\ell(a)-\Phi_\ell(b)\|_1}{n_\ell},
   \label{eq:regae-perceptual-loss}
 \end{equation}
-where $n_\ell$ is the number of feature entries. Each training example requires one decoder evaluation and predicts the clean patch directly. There is no recurrent backpropagation through a sequence of regenerated images. At reconstruction time, a single call $D_\theta(\epsilon,z)$ can likewise decode a patch from its code and fresh Gaussian noise.
+where $n_\ell$ counts the entries in each feature tensor. Training scores one decoder prediction of the clean patch. At reconstruction time the decoder can likewise render a patch in a single call $D_\theta(\epsilon,z)$ from its code and fresh Gaussian noise.
 
-\subsection{Conditional decoder and multiplicative gate}
+\subsection{Denoiser architecture and multiplicative gate}
 
-The decoder contains a convolutional inlet, a U-shaped network with group normalization, a multiplicative feature gate, a second U-shaped network without normalization, and an output projection. Multiscale skip connections, learned patch-relative positional tensors, and attention within the processed window provide spatial interaction. Latent-dependent transformations modulate intermediate features through learned additive and multiplicative terms. Consequently, the update operates over an entire patch or latent window rather than being restricted to a fixed local cellular neighborhood.
+The notebook implements the denoiser architecture in a class named \texttt{Decoder}. A convolutional input layer feeds a U-shaped network with group normalization, followed by a multiplicative gate, a second U-shaped network without normalization, and an output projection. Skip connections across scales, learned positions relative to the window, and attention allow features from different parts of the window to interact. In the image decoder, the patch code modulates intermediate features through learned additive and multiplicative terms. In the Gencoder, the code window itself is the input state, and the separate modulation pathway is disabled.
 
 The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gate, informally called \emph{gravity}, computes
 \begin{equation}
@@ -50,7 +50,7 @@ The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gat
   \gamma(g)=\operatorname{clip}_{[0,2]}(1+g/3)+10^{-4}.
   \label{eq:regae-gravity}
 \end{equation}
-Its multiplier therefore lies in $[10^{-4},2+10^{-4}]$. The earlier v0 decoder instead used $\widetilde h=h\odot\exp(g)$. The replacement bounds this particular gain; it does not impose a global activation bound or prove stability under repeated updates. Subsequent transformations can still amplify features. Both $D_\theta$ and the v2 Gencoder use this gated architecture, but the latter receives no separate conditioning vector.
+A multiplier above one amplifies the corresponding feature; a multiplier below one attenuates it. The v0 denoiser used $\widetilde h=h\odot\exp(g)$, with no upper bound. In v2 both the image decoder and the Gencoder restrict the gain of this gate to $[10^{-4},2+10^{-4}]$; subsequent network layers can still amplify features.
 
 \paragraph{Historical motivation for the bounded gate.}
 The author recalls that the exponential formulation could make bright stars progressively brighter, followed by large dark regions, informally called \emph{neural black holes}. The recordings and checkpoints were not retained. An isolated gain recurrence $h_{k+1}=h_k\exp(g_k)$ gives $h_K=h_0\exp(\sum_{k<K}g_k)$, illustrating a possible amplification mechanism. This does not establish the cause of the reported darkening: no explicit overflow-triggered reset is implemented in the notebooks. The bounded formulation limits this individual multiplier, while the full network's recurrent stability remains a separate question.
@@ -103,7 +103,7 @@ Noise refresh is stronger near the bottom and right edges. For canvas coordinate
   \beta_t&=\tfrac12\left[1+\cos(t/1824)\right].
   \label{eq:regae-refresh}
 \end{align}
-The denominator is the configured $114$ seconds times $16$ frames per second; it is the cosine's argument scale, not a full-period duration. Extending $C$ to elementwise masks, the synchronous update is
+The denominator $1824$ scales the cosine argument ($114$ seconds at $16$ frames per second). Extending $C$ to elementwise masks, the synchronous update is
 \begin{equation}
   S_{t+1}=N^{-1}\odot
   \sum_{s\in\mathcal{P}}W_s^\top
@@ -112,14 +112,14 @@ The denominator is the configured $114$ seconds times $16$ frames per second; it
 \end{equation}
 with independent Gaussian $\eta_{t,s}$ for each window evaluation. Every prediction reads the previous canvas; an initially zero accumulator collects predictions before normalization by coverage. Earlier exploratory routines also used overwrite-based overlap handling, but Eq.~\eqref{eq:regae-overlap-update} describes the final averaging routine.
 
-There is no explicit spatial roll, coordinate update, or translated copy in this loop. Motion is learned through Eq.~\eqref{eq:regae-shift-pair}. If the model tracks a consistent source region, advancing the viewed crop down and right corresponds to apparent image-content motion up and left. That interpretation is conditional on coherent tracking, not a guaranteed trajectory.
+The loop does not shift the canvas. If the Gencoder follows the displacement in Eq.~\eqref{eq:regae-shift-pair}, the viewed crop advances down and right in the source, making its contents appear to move up and left in the video.
 
-Each displayed frame is then generated independently in RGB space. For every latent location $v$, the routine draws fresh pixel noise $\xi_{t,v}$ and computes
+The image decoder renders one patch for each site of the new canvas. For every latent location $v$, the routine draws fresh pixel noise $\xi_{t,v}$ and computes
 \begin{equation}
   \widehat x_{t,v}
   =Q\!\left(D_\theta(\xi_{t,v},S_{t+1,:,v})\right),
   \label{eq:regae-frame-decoding}
 \end{equation}
-where $Q$ clips to $[-1,1]$ and quantizes to 256 levels. Nonoverlapping decoded patches form a $1088\times1920$ image, centrally cropped to $1080\times1920$. The previous RGB frame is never fed back: latent refresh and fresh decoder noise are separate stochastic sources. The configured output is 7,280 frames at 16 frames per second, or 7 minutes 35 seconds; this specifies the routine, not evidence that its saved progress widget records completion.
+where $Q$ clips to $[-1,1]$ and quantizes to 256 levels. Nonoverlapping decoded patches form a $1088\times1920$ image, centrally cropped to $1080\times1920$. The previous RGB frame is never fed back: latent refresh and fresh decoder noise are separate stochastic sources. The routine is configured to write 7,280 frames at 16 frames per second (7 minutes 35 seconds). The completed video is not embedded in the notebook.
 
 Implementation qualifications, including the historical learning-rate schedule and earlier sampling cells, are documented in Appendix~\ref{sec:archive}.

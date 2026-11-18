@@ -14,7 +14,7 @@
 
 \title{Regenerative Autoencoders:\\Recursive Modeling through Reusable Denoising}
 \author{Alejandro Hernandez Ruiz\\
-  {\small Revised draft, version 0.4.1 --- November 11, 2026}}
+  {\small Revised draft, version 0.5 --- November 18, 2026}}
 
 \begin{document}
 % Explicit English hyphenation minima for portable TeX formats.
@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-What must a model learn to reconstruct a dataset and the relationships within it? We investigate this question through Regenerative Autoencoders (ReGAE), a family of models that makes reconstruction a reusable denoising process. Neural cellular automata call recovery after damage \emph{regeneration}; ReGAE adopts this objective within the autoencoding lineage of Neural Cellular Automata Manifold. A denoiser directly predicts a corrected state without timestep conditioning, allowing the same update interface to generate from noise and resume reconstruction after perturbation. A conditional instance uses an encoder-derived code; an unconditional instance can model the resulting representations. This composition realizes a meta-modeling step: part of a system's own learned representational structure becomes the subject of another model. We present a two-level implementation on Pandora's Cluster, where an image autoencoder represents local patches and a latent denoiser learns spatial relationships through displaced prediction. The archived training records and reported synthesis behavior provide an exploratory account of this construction. The aim is to study recursive representation modeling rather than optimize a particular task benchmark. We frame the implemented hierarchy as representation-level self-modeling and examine the broader hypothesis that recursive meta-modeling could expose further structure in the data and contribute to more general adaptive intelligence.
+A model could reconstruct every patch of a photograph and still be unable to put the photograph back together. We use this distinction to ask what it takes to learn a dataset through reconstruction. Regenerative Autoencoders (ReGAE) are a family of models that reconstruct a sample by repeated denoising. If the reconstruction is damaged, the same denoiser can be reapplied to repair it; we call this \emph{regeneration}. We apply ReGAE to a 237-megapixel James Webb Space Telescope image of Pandora's Cluster, a cluster of galaxies. One model learns to reconstruct small patches; a second learns how their representations change as the view shifts across the image. In exploratory runs, we observed plausible star fields when sampling patches alone. With the second model, the sampled views remained coherent over larger regions, although they sometimes appeared to jump between locations. The example illustrates how one model's representation can become the data for another.
 \end{abstract}
 
 \input{sections/introduction}
@@ -33,7 +33,7 @@ What must a model learn to reconstruct a dataset and the relationships within it
 \input{sections/discussion}
 
 \section{Conclusion}
-ReGAE treats reconstruction as a process that can be reused: on a noise state, on a damaged reconstruction, and on representations produced by another model. Its direct, time-unconditioned denoising interface provides the common operation. The Pandora implementation makes the composition concrete by learning patch representations and then modeling their spatial structure with another member of the same family. This is a concrete meta-modeling step toward systems that make their own learned representations objects of further modeling. The contribution is the inspectable construction and the questions it exposes about retained information, relationships, and recursive meta-modeling. Establishing how far such recursion supports adaptive intelligence remains an open research direction.
+Return to the shuffled photograph. A decoder can reproduce each patch from its code, yet recovering the photograph also requires knowing where the patches belong. Saving their order supplies that knowledge; training on their neighborhoods asks a model to acquire some of it. ReGAE lets us pose both problems with the same denoising architecture. As a decoder it reconstructs pixels from a patch code and can resume after damage. As a Gencoder it predicts a neighboring view in the space of patch codes. The reported jumps between apparently plausible views expose the remaining distinction: predicting what could come next is a weaker requirement than recovering what was there. Asking what information a new level captures, and what still has to be supplied, gives recursive meta-modeling a concrete research question.
 
 \paragraph{Data and code.}
 The original notebooks and manuscript sources are available in the \href{https://github.com/magnux/neural_pandoras_cluster}{Neural Pandora's Cluster repository}. The source image is credited to NASA, ESA, CSA, Ivo Labbe (Swinburne), and Rachel Bezanson (University of Pittsburgh), with image processing by Alyssa Pagan (STScI)~\cite{webb}. The experiments use the rendered image as a visual learning problem; generated outputs are not astronomical observations.

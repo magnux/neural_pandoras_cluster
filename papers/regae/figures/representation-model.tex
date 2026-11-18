@@ -31,15 +31,15 @@
 }
 \node[note] at (8.05,2.91) {Arrangement supplied externally};
 \node[net,text width=2.55cm] (gencoder) at (12.55,3.65)
-  {Latent denoiser $G_{\psi}$\\\scriptsize no external code};
+  {Gencoder $G_{\psi}$\\{\scriptsize denoiser on codes}};
 \draw[flow] (samples)--(encoder);
-\draw[flow] (encoder)--node[note,above]{encode and\\arrange}(field);
+\draw[flow] (encoder)--node[note,above]{arrange\\codes}(field);
 \draw[flow,dashed] (field)--node[note,above,align=center]{training\\windows}(gencoder);
 
 \node[box,text width=2.0cm] (pixels) at (1.1,1.25)
   {Pixel state $u_k$};
 \node[net,text width=2.0cm] (decoder) at (4.3,1.25)
-  {Image denoiser\\$D_{\theta}$};
+  {Decoder $D_{\theta}$\\{\scriptsize denoiser on pixels}};
 \node[box,text width=2.55cm] (decoded) at (8.05,1.25)
   {Decoded patch $u_{k+1}$};
 \node[box,text width=2.55cm] (latent) at (12.55,1.25)
@@ -56,5 +56,5 @@
   --node[note,fill=white,inner sep=2pt,text=blue!55!black]{optional pixel-state reuse}(1.1,.38)
   --(pixels.south);
 \node[note] at (7.65,-.20)
-  {Across levels: learned codes become data. Within each level: an updated state can be reused.};
+  {Across levels: learned codes become data. Within each level: the output can be used as the next input.};
 \end{tikzpicture}

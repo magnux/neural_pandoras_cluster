@@ -1,98 +1,92 @@
 \section{Regenerative Autoencoders}
 \label{sec:method}
 
-A conditional ReGAE separates a description of what should be reconstructed from the mutable state on which reconstruction operates. Consider a sample whose encoding is retained while its current reconstruction is corrupted. The code still supplies a reference; the denoiser uses that reference and the altered state to predict a corrected state. The same interface also accepts a noise initialization. Figure~\ref{fig:architecture} shows the conditional and unconditional forms.
+\subsection{Network architectures and their roles}
+
+Two network architectures recur in the ReGAE family. An \emph{encoder} maps a sample to a compact representation; a \emph{denoiser} takes a state and predicts a corrected state of the same shape. What each network does in a model depends on how it is connected and trained. In an autoencoder, the encoder produces the code and the denoiser serves as the \emph{decoder}: it interprets that code to reconstruct the sample. The same encoder architecture could instead feed a classification head that predicts a label. Likewise, a denoiser can generate codes rather than decode them. We call the denoiser in that role the \emph{Gencoder}. Figure~\ref{fig:architecture} shows how a denoiser can operate with or without a separate conditioning code.
 
 \begin{figure*}[t]
   \centering
   \input{figures/architecture}
-  \caption{The ReGAE interface. A conditional model retains a latent code while repeatedly updating a state of matching input/output shape. Generation starts from noise; regeneration re-enters the same loop after perturbation. The unconditional variant omits the encoder-derived code. These are model variants, not mandatory levels of a hierarchy; the loops describe the interface rather than a measured recovery trajectory.}
+  \caption{Two ways to use the ReGAE denoiser. Top: in an autoencoder, the denoiser acts as a decoder. The code supplies a reference for reconstruction and stays fixed as the state changes. Bottom: without an encoder or a separate code, each prediction depends on the current state alone. In either loop the output can be fed back; reconstruction can resume from a perturbed state.}
   \label{fig:architecture}
 \end{figure*}
 
-\subsection{A code and a mutable state}
+\subsection{Decoding, generation, and regeneration}
+\label{sec:direct-map}
 
-Let $\mathcal X$ be a space of data tensors and $\mathcal Z$ a latent tensor space. An encoder $E_\phi:\mathcal X\to\mathcal Z$ produces $z=E_\phi(x)$ for a sample $x$. A conditional denoiser maps a current state $u$ and that code back to the data domain:
+Let $x\in\mathcal X$ be a sample and let $z=E_\phi(x)\in\mathcal Z$ be the code produced by the encoder. Depending on the task, $z$ may be a vector or a structured tensor. The decoder takes $z$ and a current estimate $u_k\in\mathcal X$ of the sample:
 \begin{equation}
  D_\theta:\mathcal X\times\mathcal Z\to\mathcal X,
  \qquad u_{k+1}=D_\theta(u_k,z).
  \label{eq:family-recurrence}
 \end{equation}
-The latent is a vector or structured tensor chosen for the task. Its role is to retain sample information through a bottleneck. The state has the same dimensions at every update, so the output can be reused without re-encoding. Both the code and the network parameters remain fixed along a conditional trajectory.
+Starting from noise asks the decoder to generate a reconstruction from the code. Starting from a damaged reconstruction asks it to repair that reconstruction. If $P$ perturbs a reconstructed sample $\widehat x$, the repair loop is
+\begin{equation}
+ y_0=P(\widehat x),\qquad y_{k+1}=D_\theta(y_k,z).
+ \label{eq:family-regeneration}
+\end{equation}
+The encoder need not run again: the damage changes the state while the reference code stays fixed. How much damage the decoder can repair depends on the learned map; Appendix~\ref{sec:geometry-notes} gives a sufficient local condition.
 
-\subsection{Direct prediction without a clock}
-\label{sec:direct-map}
-
-The output of $D_\theta$ is the predicted target state itself. Its induced displacement at fixed $z$ is
+The decoder predicts its next state directly. Its update can equivalently be written as a displacement:
 \begin{equation}
  \Delta_z(u)=D_\theta(u,z)-u,
  \qquad u_{k+1}=u_k+\Delta_z(u_k).
  \label{eq:direct-displacement}
 \end{equation}
-The second expression rewrites direct assignment; the displacement is not an additional trained output. In particular, no predicted derivative or noise estimate has to be converted into the next state by a separate sampling rule.
+Only the state prediction is trained. The decoder receives neither the update index $k$ nor the corruption strength: given the same state and code, it makes the same prediction whether it is generating or repairing. Section~\ref{sec:geometry} compares this update with time-dependent generative dynamics.
 
-The update counter $k$ is not a network input. Neither is the corruption strength. The same state and code therefore invoke the same correction regardless of where they occur in a trajectory. This gives an autonomous discrete map for each fixed code. It also gives a simple interface for repair: the current state can be submitted again without assigning it a time in a denoising schedule. The implications of this choice for the landscape interpretation are discussed in Sec.~\ref{sec:geometry}.
+\subsection{Learning the state update}
 
-\subsection{Learning to restore a desired state}
-
-Training presents a corrupted sample and asks for its clean counterpart. With corruption strength $\alpha$ and random variable $\epsilon$, one possible corruption is
+To train the autoencoder, we encode a clean sample $x$ and separately corrupt a copy. For example, with noise $\epsilon$ and strength $\alpha$, we can use
 \begin{equation}
  C_\alpha(x,\epsilon)=(1-\alpha)x+\alpha\epsilon,
  \qquad 0\leq\alpha\leq1.
  \label{eq:family-corruption}
 \end{equation}
-The encoder and conditional denoiser can be trained jointly with
+The encoder and decoder jointly minimize the error between the predicted and clean samples:
 \begin{equation}
  \mathcal L_{\mathrm{cond}}=
  \mathbb E_{x,\alpha,\epsilon}
  \!\left[\ell\bigl(D_\theta(C_\alpha(x,\epsilon),E_\phi(x)),x\bigr)\right].
  \label{eq:family-conditional-loss}
 \end{equation}
-Here noise is corruption of the desired state, while the regression target is that state. Sampling different strengths trains the same map on different degrees of departure from the target. The predictor must resolve uncertainty about corruption strength using the state and code; Appendix~\ref{sec:geometry-notes} gives a squared-error interpretation.
+As the corruption strength increases, less of the target is visible in the state and the code becomes more useful. The loss $\ell$ can measure error directly (e.g., $L_1$ or squared $L_2$) or compare features. For the Pandora image decoder we use a VGG-based perceptual (\emph{perceptive}) loss~\cite{vgg,perceptual}. The choice of loss and corruption depends on what the reconstruction should preserve.
 
-The loss $\ell$ may be $L_1$, squared $L_2$, or a feature-space loss. The Pandora image model uses a VGG-based \emph{perceptive}, or perceptual, loss~\cite{vgg,perceptual}; this is a fidelity choice for that implementation. The corruption distribution, masking, and internal architecture are likewise configurable. A U-Net-based denoiser is the default here, but the essential interface is matching state-input and state-output dimensions. Suitable operators can realize it for one-, two-, or three-dimensional layouts.
-
-\subsection{Generation, regeneration, and conditioning}
-
-Conditional generation starts with $u_0$ drawn from a noise distribution and applies Eq.~\eqref{eq:family-recurrence}. A code obtained from an observed sample supplies its reconstruction target. New codes require a sampling mechanism of their own. For a reconstructed state $\widehat x$ and an external perturbation $P$, regeneration instead starts with
+To train a denoiser without a separate code, we omit the encoder and give the network only the corrupted state:
 \begin{equation}
- y_0=P(\widehat x),\qquad y_{k+1}=D_\theta(y_k,z).
- \label{eq:family-regeneration}
-\end{equation}
-Generation and repair thus share the learned operator. Training a restoration step supplies this reusable mechanism; successful recovery over a chosen sequence of updates depends on the learned map and the perturbations encountered. The interface alone does not establish a stable attractor.
-
-An unconditional member removes the external code:
-\begin{equation}
- u_{k+1}=D_\psi(u_k),\qquad
- \mathcal L_{\mathrm{uncond}}=
+ \begin{aligned}
+ u_{k+1}&=D_\psi(u_k),\\
+ \mathcal L_{\mathrm{uncond}}&=
  \mathbb E\!\left[\ell(D_\psi(C_\alpha(x,\epsilon)),x)\right].
+ \end{aligned}
  \label{eq:family-unconditional}
 \end{equation}
-Its current state supplies the sample-specific context. Consequently, recovery from an ambiguous state need not identify one particular original sample. Both variants omit time conditioning; only the conditional variant receives $z$. Noise refresh or other interventions between calls are sampling choices outside the neural map.
+In this unconditional ReGAE, any clues to the identity of the target must come from the state itself. If several samples are compatible with what survives a perturbation, no external code selects between them. Both forms require matching state input and output dimensions, so the same construction applies to one-, two-, or three-dimensional data. We use a U-Net-based denoiser; other architectures that preserve the shape of the state can serve the same roles.
 
-\subsection{Meta-modeling learned representations}
+\subsection{The Gencoder: generating learned codes}
 \label{sec:composition}
 
-After learning $E_\phi$, we can construct a dataset of representations. Let $\mathcal I_j$ index related samples and let $A_j$ assemble their indexed codes according to a supplied layout or relation:
+A decoder tells us how to turn a code back into a sample. It does not tell us which codes occur together. We can make that a separate learning problem by fixing the trained encoder and assembling its outputs into new training examples. Let $\mathcal I_j$ index a group of related samples and let $A_j$ record the relation we want to retain:
 \begin{equation}
  R_j=A_j\bigl((E_\phi(x_i))_{i\in\mathcal I_j}\bigr).
  \label{eq:representation-data}
 \end{equation}
-The selection and assembly specify which relationships training preserves. In the Pandora example, $A_j$ preserves spatial order; a collection of independent images would suggest a different organization. With the encoder fixed, another ReGAE can learn a state update over these tensors. We denote the unconditional instance by $G_\psi$ and call it the Gencoder.
+For an image, $A_j$ can place patch codes in their original spatial order, giving a window of codes $R_j$. For a collection of independent samples, a useful relation might instead be membership in the same class. The choice determines which relationships the next model has an opportunity to learn.
 
-This meta-modeling step reuses the modeling interface across levels, with separately trained weights. Within a level, recurrence repeatedly updates a state; across levels, composition makes one model's representations the data of another. Figure~\ref{fig:representation-model} distinguishes these operations. The present construction realizes two levels. Further encoders and denoisers could extend the pattern, with each new representation and objective specified explicitly.
-
-The higher-level target can also describe a transition. For related, same-shaped tensors $(R^-,R^+)$, train
+In the Pandora case a second denoiser, $G_\psi$, serves as the Gencoder (Fig.~\ref{fig:representation-model}). Its input and output are both windows of codes, and it receives no separate conditioning code. We train it on pairs of same-shaped windows $(R^-,R^+)$:
 \begin{equation}
  \mathcal L_{\mathrm{pair}}=
  \mathbb E\!\left[\ell(G_\psi(C_\alpha(R^-,\epsilon)),R^+)\right].
  \label{eq:family-paired-target}
 \end{equation}
-Ordinary restoration sets $R^+=R^-$. The Pandora Gencoder uses a displaced view instead, coupling denoising to prediction. Its recurrent behavior is therefore intended to progress through image content, rather than settle on one unchanged view.
+Choosing $R^+=R^-$ would train it to restore the same view. Instead we take $R^+$ from a slightly displaced view, so the Gencoder must both correct the corruption and predict the next set of codes. Each predicted code can then be rendered by the image decoder.
+
+Two kinds of reuse are at work here. Feeding a prediction back into the same denoiser is recurrence within a single representation. Training another denoiser on the first model's codes is \emph{meta-modeling}: structure expressed in a learned representation becomes the subject of a further model. The two networks reuse the denoising architecture with separately learned parameters.
 
 \begin{figure*}[t]
   \centering
   \input{figures/representation-model}
-  \caption{Making learned representations the subject of further modeling. The encoder produces codes whose arrangement supplies a representation field. A separately trained unconditional Gencoder models windows of that field; its updated codes condition the image denoiser. The feedback loop is recurrence within the latent state. Reuse across levels concerns the denoising interface, not shared weights. This representation-level meta-modeling makes part of the composite system's learned structure an object of further modeling; the object is the code field, not the network parameters.}
+  \caption{Architecture and roles in the Pandora experiment. The encoder maps image patches to codes, which are arranged at their source locations to form training windows. The Gencoder predicts windows of new codes; the decoder interprets each code as an image patch. Both use the denoiser architecture. The final video sampler repeats updates in code space and calls the decoder once per patch.}
   \label{fig:representation-model}
 \end{figure*}

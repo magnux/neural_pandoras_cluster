@@ -1,28 +1,28 @@
-\section{Archive and Implementation Details}
+\section{What the Notebooks Preserve}
 \label{sec:archive}
 
 \paragraph{Source of the technical description.}
-The principal implementation is the v2 notebook, while v0 documents architectural and sampling development. The repository preserves both original files in its notebooks directory, together with their SHA-256 hashes. The description in this manuscript was obtained by inspecting code and saved outputs. No notebook training or generation cell was executed to prepare this draft. The separate NVD notebooks are not evidence for the ReGAE results.
+The repository preserves the original v0 and v2 notebooks and their SHA-256 hashes. We describe the implementation from the code and saved outputs of v2; v0 records earlier architecture and sampler designs. We did not rerun training or generation.
 
 \paragraph{Stage boundaries.}
-The v2 configuration jointly trains the image encoder and decoder, then constructs latent maps for the Gencoder. The latter is a separately trained instance of the decoder family with 256 input/output channels and no external conditioning code. The image decoder uses three input/output channels and latent conditioning. Shared architecture thus refers to the computational construction, not tied weights. The patch-relative positional parameters do not encode global source-image coordinates.
+In v2, two instances of the class \texttt{Decoder} implement the same denoiser design with different state spaces. One reads and writes three RGB channels and takes a separate patch code: this instance is the image decoder. The other reads and writes 256 latent channels and has no conditioning input: this instance is the Gencoder. The encoder and image decoder train together. Their weights remain fixed while the Gencoder fits the code windows.
 
 \paragraph{Optimization and reproducibility.}
-The recorded environment reports PyTorch 2.2.2 with CUDA 12.1, and the code sets a random seed of 4202. These facts do not specify the original GPU, elapsed training time, or complete software environment. The archive contains configured training loops and saved displays, but no complete execution log establishing every historical state. In v2, the Gencoder loop computes a decaying learning rate but assigns it to the AE optimizer, leaving the Gencoder optimizer unchanged by that schedule. This is preserved as a historical qualification rather than silently corrected. Exact reproduction should distinguish a faithful historical configuration from a cleaned implementation.
+The recorded environment reports PyTorch 2.2.2 with CUDA 12.1, and the code sets a random seed of 4202. The original GPU, elapsed training time, and complete execution history are not recorded. One detail matters for reproducing the second stage: the v2 Gencoder loop computes a decaying learning rate but assigns it to the autoencoder optimizer. The Gencoder optimizer therefore does not receive the scheduled decay.
 
 \paragraph{Exploratory sampling in v0.}
-The earlier notebook includes source-code reconstruction, latent generation, random overlapping patch updates, repeated local refinement, and shifted raster sweeps. Some updates protect previously completed pixels or use update-budget masks. Their motivation includes an analogy to wave-function-collapse-style synthesis. The cells do not implement a documented entropy-ranked constraint-propagation algorithm, and their current channel and conditioning assumptions are not mutually consistent with all retained network definitions. We therefore avoid presenting them as a verified benchmark of sampling strategies. The later v2 synchronous overlap average is specified explicitly in Eq.~\eqref{eq:regae-overlap-update}.
+The earlier notebook includes reconstruction from observed patch codes, generation of new codes, random updates of overlapping patches, repeated local refinement, and shifted raster sweeps. Some updates protect previously completed pixels or use update-budget masks. The shifted sweeps draw on an analogy with wave function collapse in procedural synthesis. The cells do not implement a documented entropy-ranked constraint-propagation algorithm, and their current channel and conditioning assumptions are not mutually consistent with all retained network definitions. The notebook consequently does not preserve a controlled comparison of the strategies. The later v2 synchronous overlap average is specified explicitly in Eq.~\eqref{eq:regae-overlap-update}.
 
 \paragraph{Extent of a latent window.}
-The decoder tiles $32\times32$ generated image patches into a $1024\times1024$ macro-image. The source crops used to build a corresponding training window are positioned by the rounded lattice in Eq.~\eqref{eq:regae-grid-origins}, rather than exactly 32 pixels apart. ``Megapixel window'' consequently describes the decoded tile extent; it does not assert that all sampled training windows form an exact, gap-free partition of the source image.
+For each window, the image decoder renders a patch at each of $32\times32$ code locations, and the sampler tiles these patches into a $1024\times1024$ image. The source crops used to build a corresponding training window are positioned by the rounded lattice in Eq.~\eqref{eq:regae-grid-origins}, rather than exactly 32 pixels apart. ``Megapixel window'' consequently describes the decoded tile extent; it does not assert that all sampled training windows form an exact, gap-free partition of the source image.
 
-\paragraph{Visual evidence to add from existing runs.}
-The most informative additions would be a source region alongside its patch-code reconstruction, a spatially coherent Gencoder sample, and a short sequence showing a typical trajectory and a reported jump. Each should identify its checkpoint, sampler configuration, and whether its RGB rendering uses fresh noise. The unstable exponential-gate example cannot currently be illustrated from an original recording and should remain identified as an anecdote. This list specifies documentation needs, not new experiments or figures that already exist in this draft.
+\paragraph{Provenance of the visual observations.}
+The training plots below are embedded in v2. The notebook does not contain the sampled stills or video needed to locate a reported jump against the source mosaic, or to associate one with a particular checkpoint and sampler. The account of the earlier exponential gate also survives only in the author's recollection (Appendix~\ref{sec:implementation}).
 
 \section{Storage Accounting for the Proof of Concept}
 \label{sec:storage}
 
-The stored parameter counts are 4,673,752 for the encoder, 50,986,296 for the conditional image denoiser, and 85,479,680 for the Gencoder. These counts describe this implementation, not a required model size. Table~\ref{tab:storage} calculates uncompressed payloads in decimal megabytes. A code grid alone does not specify a complete codec for the image, including its boundary conventions and reconstruction distortion.
+The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the image decoder, and 85,479,680 for the Gencoder. Each patch contains 3,072 eight-bit channel values; its 256 floating-point code values use one third as many bytes at FP32 precision. To reconstruct the patches from an ordered code grid, one must also store the decoder. Table~\ref{tab:storage} separates these uncompressed payloads in decimal megabytes; it does not assign a bitrate at a given distortion.
 
 \begin{table}[t]
   \centering
@@ -34,9 +34,9 @@ The stored parameter counts are 4,673,752 for the encoder, 50,986,296 for the co
     \midrule
     Source RGB array, 8 bits per channel & 710.45 \\
     One $419\times551\times256$ grid, FP32 & 236.41 \\
-    Image encoder and denoiser, FP32 & 222.64 \\
+    Image encoder and decoder, FP32 & 222.64 \\
     Gencoder, FP32 & 341.92 \\
-    Image denoiser plus one grid, FP32 & 440.36 \\
+    Image decoder plus one grid, FP32 & 440.36 \\
     AE and Gencoder parameters, FP32 & 564.56 \\
     \bottomrule
   \end{tabular}
@@ -53,7 +53,7 @@ The plots reproduce unchanged PNGs from the archived v2 outputs. Their horizonta
 \begin{figure*}[t]
   \centering
   \includegraphics[width=0.86\textwidth]{figures/ae-training.png}
-  \caption{Saved image-autoencoder training display (v2, code cell 39 under zero-based notebook indexing). The summary reports minimum 0.389, current 0.450, and maximum 1.000; the history was clipped to $[0,1]$ for plotting. The displayed quantity is the square root of the VGG feature $L_1$ loss. The history supports optimization of the training objective, not a held-out quality estimate.}
+  \caption{Saved image-autoencoder training display (v2, code cell 39 under zero-based notebook indexing). The summary reports minimum 0.389, current 0.450, and maximum 1.000; the history was clipped to $[0,1]$ for plotting. The displayed quantity is the square root of the VGG feature $L_1$ loss. These are training values; the notebook does not report a held-out reconstruction score.}
   \label{fig:ae-trace}
 \end{figure*}
 
