@@ -39,7 +39,7 @@ The connecting essay will distinguish compact representations, total model-and-d
 | [papers/regae/](papers/regae/) | Current manuscript PDF and the LaTeX source, bibliography, and figures needed to build it |
 | [presentations/regae/](presentations/regae/) | Research talk in editable PowerPoint and PDF formats |
 | [notebooks/](notebooks/) | Four original notebook snapshots, provenance notes, and SHA-256 checksums |
-| [docs/regae-narrative-plan.md](docs/regae-narrative-plan.md) | Writing direction for the paper, including the information motivation and the use of encoder responses for meta-modeling |
+| [docs/regae-narrative-plan.md](docs/regae-narrative-plan.md) | Writing guide for the next revision: narrative, section roles, figure map, and how to match claims to the evidence |
 | [docs/publication-roadmap.md](docs/publication-roadmap.md) | Publication scope, outlines, proposed figures, and related work |
 | [docs/regae-notes.md](docs/regae-notes.md) | ReGAE architecture, DiffAE comparison, gravity, and code observations |
 | [docs/nvd-notes.md](docs/nvd-notes.md) | NVD operators, schedules, evidence, and implementation caveats |
