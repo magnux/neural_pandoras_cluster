@@ -1,0 +1,33 @@
+% First ConvU only. The skip projection widths are those BEFORE each up stage.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\small]
+\input{figures/notebook-visuals}
+\nvheading{0}{6.67}{A}{Inside the pixel decoder's first U}
+\node[nvsm,anchor=east] at (16.70,6.67){Numbers beneath volumes are output channels.};
+\node[nvsm,anchor=west,font=\sffamily\bfseries\footnotesize] at (.03,6.03){Spatial size};
+\node[nvtxt,font=\sffamily\bfseries\small,anchor=west,text=nvBlue] at (2.14,6.06){Contracting path};
+\node[nvtxt,font=\sffamily\bfseries\small,anchor=east,text=nvBlue] at (16.7,6.06){Expanding path};
+\foreach \yy/\res in {5.12/32,3.91/16,2.70/8,1.49/4}{
+ \path[draw=nvRule!55,line width=.40pt] (1.40,\yy)--(16.65,\yy);
+ \node[nvtxt,anchor=west] at (0,\yy){$\res\times\res$};}
+% Solid stage volumes: map on each row, depth grows with the channel count.
+\foreach \n/\x/\y/\side/\dep/\channels in {
+ l0/2.28/5.12/.77/.26/128,l1/3.96/3.91/.62/.40/192,l2/5.42/2.70/.48/.53/256,l3/6.88/1.49/.36/.53/256,
+ r3/9.75/1.49/.36/.46/224,r2/11.86/2.70/.48/.40/192,r1/13.77/3.91/.62/.33/160,r0/15.67/5.12/.77/.26/128}{
+\nvmap{\n}{\x}{\y}{\side}{\dep}
+\node[nvsm,fill=white,font=\sffamily\bfseries\footnotesize,text=nvInk] at ({\x+.16},{\y-\side/2-.20}){\channels};}
+% Input/output ports complete the detailed module.
+\draw[nvline] (1.29,5.12)--(l0L);
+\draw[nvline] (r0R)--(16.88,5.12);
+\node[nvsm,anchor=west,fill=white] at (1.20,5.75){in: 64};
+\node[nvsm,anchor=east,fill=white] at (16.88,5.75){out: 128};
+% Straight stages; vertical direction denotes a twofold change in side length.
+\foreach \a/\b in {l0/l1,l1/l2,l2/l3,l3/r3}{\draw[nvline] (\a R)--(\b L);}
+\foreach \a/\b/\x/\y/\prev/\cin/\cout in {l0/r0/14.53/5.12/r1/128/160,l1/r1/12.60/3.91/r2/192/192,l2/r2/10.78/2.70/r3/256/224}{
+\node[nvmath] (j\a) at (\x,\y){$+$};
+\draw[nvline] (\prev R)--(j\a.south);
+\draw[nvline] (j\a.east)--(\b L);
+\draw[nvskip] (\a R)--node[midway,fill=white,inner xsep=3pt,inner ysep=1.5pt,font=\sffamily\footnotesize,text=nvBlue]{project $1\!\times\!1$: \cin\,$\to$\,\cout}(j\a.west);}
+\node[nvsm,text=nvMute,anchor=west] at (6.5,.79){Two stages at $4\times4$; no skip here.};
+\draw[nvRule,line width=.65pt] (0,.47)--(16.69,.47);
+\node[nvsm,anchor=west] at (.04,.12){Along the U: nearest-neighbor resize between levels. Across a row: project the saved features and add before the up stage.};
+\end{tikzpicture}

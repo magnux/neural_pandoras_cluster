@@ -1,34 +1,53 @@
-% Side-by-side recurrent machines: learned modules, state tensors, and fixed program.
-\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
-\input{figures/tensor-styles}
-\node[rghead] at (0,3.70) {A\quad Conditional: a code selects the update rule};
-\node[rghead] at (8.88,3.70) {B\quad Unconditional: one rule acts on the state};
-\draw[rgMuted!27] (8.52,.03)--(8.52,3.82);
-\rgvolume{sample}{.55}{2.56}{.72}{.72}{.12}{rgTeal}
-\node[rgspec,below=2pt] at (sample-S){sample $x$};
-\node[rgnet,minimum width=1.55cm] (enc) at (3.15,2.58){encoder $E_\phi$};
-\rgvolume{code}{5.17}{2.58}{.95}{.22}{.22}{rgAmber}
-\node[rgspec,anchor=west,text=rgAmber] at (5.98,2.58) {fixed code $z$};
-\draw[rgflow] (sample-E)--(enc.west);
-\draw[rgcode] (enc.east)--(code-W);
-\rgvolume{u}{.55}{1.20}{.72}{.72}{.12}{rgTeal}
-\node[rgspec,below=2pt] at (u-S){state $u_k$};
-\node[rgnet,minimum width=2.05cm] (dec) at (5.17,1.21){denoiser $D_\theta$};
-\rgvolume{v}{7.43}{1.21}{.72}{.72}{.12}{rgTeal}
-\node[rgspec,below=2pt] at (v-S){$u_{k+1}$};
-\draw[rgcode] (code-S)--(dec.north);
-\draw[rgflow] (u-E)--(dec.west);
-\draw[rgflow] (dec.east)--(v-W);
-\draw[rgflow] (v-E)--(8.06,1.24)--(8.06,.25)--(.03,.25)--(.03,1.20)--(u-W);
-\node[rgspec,fill=white,inner xsep=3pt] at (4.0,.25){repeat with the same $z$};
-\rgvolume{q}{9.57}{1.21}{.72}{.72}{.23}{rgTeal}
-\node[rgspec,below=2pt] at (q-S){state $s_k$};
-\node[rgnet,minimum width=2.18cm] (unc) at (12.73,1.21){denoiser $D_\psi$};
-\rgvolume{r}{15.72}{1.21}{.72}{.72}{.23}{rgTeal}
-\node[rgspec,below=2pt] at (r-S){$s_{k+1}$};
-\draw[rgflow] (q-E)--(unc.west);
-\draw[rgflow] (unc.east)--(r-W);
-\node[align=left,anchor=west,text=rgMuted,font=\sffamily\footnotesize] at (9.01,2.58){No external program $z$. In Pandora, the state itself\\is a spatial window of encoder responses.};
-\draw[rgflow] (r-E)--(16.48,1.27)--(16.48,.25)--(8.94,.25)--(8.94,1.21)--(q-W);
-\node[rgspec,fill=white,inner xsep=3pt] at (12.71,.25){repeat on the predicted state};
+% Unroll the recurrent map.  The weights are shared within each row, not between rows.
+\begin{tikzpicture}[x=1cm,y=1cm,
+  font=\sffamily\small,>={Latex[length=2.0mm,width=1.4mm]},
+  flow/.style={->,draw=black!82,line width=.85pt},
+  held/.style={->,draw=orange!54!black,line width=.90pt},
+  agent/.style={draw=teal!55!black,fill=teal!9,line width=.85pt,minimum width=1.62cm,
+               minimum height=.63cm,inner xsep=3pt,font=\sffamily\bfseries\small},
+  st/.style={draw=black!60,fill=white,minimum width=1.13cm,minimum height=.64cm,
+             line width=.60pt,inner sep=1pt},
+  smalltxt/.style={font=\sffamily\footnotesize,text=black!76,align=left,inner sep=1pt},
+  sectiontxt/.style={font=\sffamily\bfseries\normalsize,anchor=west,inner sep=0pt},
+  key/.style={draw=orange!58!black,fill=orange!10,text=orange!44!black,
+             minimum height=.51cm,inner xsep=4pt},
+]
+% Incoming sample is encoded once. One fixed program supplies both time steps.
+\node[sectiontxt] at (0,4.99) {A\quad A fixed code steers the decoder};
+\node[font=\sffamily\footnotesize,anchor=east,text=black!65] at (16.30,4.99) {CONDITIONED ON THE SAMPLE};
+\node[anchor=west,inner sep=0pt] (patch) at (.15,4.12) {Sample $x$};
+\node[agent] (encoder) at (3.02,4.12) {encoder $E_\phi$};
+\node[key] (z) at (5.19,4.12) {code $z$};
+\draw[flow] (patch.east)--(encoder.west);
+\draw[flow] (encoder.east)--(z.west);
+\node[smalltxt,anchor=west,text=orange!44!black] at (7.02,4.32) {Encode once. Every update reads the same $z$.};
+\draw[draw=orange!54!black,line width=.90pt] (z.east)--(12.20,4.12);
+\foreach \x in {7.05,12.20}{\fill[orange!54!black] (\x,4.12) circle(1.6pt);}
+\node[align=left,anchor=west,inner sep=0pt,text width=3.50cm] at (.15,2.94) {Start from noise\newline or a damaged state.};
+\node[st] (a0) at (4.70,2.94) {$u_0$};
+\node[agent] (d0) at (7.05,2.94) {decoder $D_\theta$};
+\node[st] (a1) at (9.65,2.94) {$u_1$};
+\node[agent] (d1) at (12.20,2.94) {decoder $D_\theta$};
+\node[st] (a2) at (14.74,2.94) {$u_2$};
+\draw[held] (7.05,4.12)--(d0.north);
+\draw[held] (12.20,4.12)--(d1.north);
+\foreach \l/\r in {a0/d0,d0/a1,a1/d1,d1/a2}{\draw[flow] (\l.east)--(\r.west);}
+\draw[flow] (a2.east)--(15.94,2.94);
+\node[inner sep=0pt] at (16.12,2.94) {$\cdots$};
+\node[smalltxt,anchor=west] at (4.13,2.34) {initial state};
+\node[smalltxt] at (9.65,2.34) {first prediction};
+\node[smalltxt] at (14.74,2.34) {next prediction};
+\draw[black!28,line width=.5pt] (0,1.97)--(16.30,1.97);
+\node[sectiontxt] at (0,1.56) {B\quad With no external code, only the state enters};
+\node[font=\sffamily\footnotesize,anchor=east,text=black!65] at (16.30,1.56) {UNCONDITIONAL};
+\node[align=left,anchor=west,inner sep=0pt,text width=3.49cm] at (.15,.72) {The state can itself be\newline a window of codes.};
+\node[st] (b0) at (4.70,.72) {$s_0$};
+\node[agent] (g0) at (7.05,.72) {denoiser $D_\psi$};
+\node[st] (b1) at (9.65,.72) {$s_1$};
+\node[agent] (g1) at (12.20,.72) {denoiser $D_\psi$};
+\node[st] (b2) at (14.74,.72) {$s_2$};
+\foreach \l/\r in {b0/g0,g0/b1,b1/g1,g1/b2}{\draw[flow] (\l.east)--(\r.west);}
+\draw[flow] (b2.east)--(15.94,.72);
+\node[inner sep=0pt] at (16.12,.72) {$\cdots$};
+\node[smalltxt,anchor=west] at (.15,-.04) {Boxes with the same network symbol share weights. Open-ended paths may continue for further updates.};
 \end{tikzpicture}

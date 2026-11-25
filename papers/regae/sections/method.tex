@@ -8,7 +8,7 @@ Two network architectures recur in the ReGAE family. An \emph{encoder} maps a sa
 \begin{figure*}[t]
   \centering
   \resizebox{.99\textwidth}{!}{\input{figures/architecture}}
-  \caption{Two ways to use the ReGAE denoiser. Left: the decoder takes a changing state and a fixed code from the encoder. Right: an unconditional denoiser takes only the changing state. In the Pandora experiment this state is a window of patch codes and the denoiser serves as the gencoder. Both loops feed the prediction back as the next state.}
+  \caption{Two successive updates, shown left to right. (A) The encoder computes one code $z$; two calls to the same decoder read it as the state changes. Damage can replace the initial state without changing $z$. (B) Without external conditioning, successive calls read only the evolving state. In Pandora the gencoder uses this form on windows of encoder outputs.}
   \label{fig:architecture}
 \end{figure*}
 
@@ -89,6 +89,6 @@ This is the \emph{meta-modeling} step: the training targets are observations of 
 \begin{figure*}[t]
   \centering
   \resizebox{.99\textwidth}{!}{\input{figures/representation-model}}
-  \caption{The bottleneck is where the second model observes the first. We arrange the encoder's codes at their source locations to make training windows; the gencoder learns to predict the codes the encoder produces for the next view. At sampling time the decoder renders each predicted code as an image patch. The final video sampler repeats updates in code space and calls the decoder once per patch.}
+  \caption{Modeling the encoder at its bottleneck. (A) Two offset crop lattices produce paired $32\times32$ windows of 256-value codes; a noisy source window must predict the clean, displaced target. The grids on the Webb display image~\cite{webb} show the relative offset schematically, not the scale of the full-resolution training crops. (B) During sampling, predicted codes update the latent canvas. The pixel decoder reads each final code once, with fresh noise; the resulting patches assemble into an image tile. No model output is pictured.}
   \label{fig:representation-model}
 \end{figure*}

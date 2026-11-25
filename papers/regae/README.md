@@ -2,17 +2,22 @@
 
 **Regenerative Autoencoders: Recursive Modeling through Reusable Denoising**
 
-Version 0.7, November 25, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.8, November 25, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.7.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.7-source.zip)
+- [Read the revised PDF](regae-draft-v0.8.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.8-source.zip)
 - [Sliding-tile galaxy illustration](https://github.com/magnux/neural_pandoras_cluster/blob/main/papers/regae/previews/galaxy-puzzle-v0.5.1.png)
 - [Representation-modeling schematic](figures/representation-model.tex)
-- [Encoder and U-shaped denoiser diagrams](figures/notebook-architecture.tex)
-- [Internal block diagrams](figures/notebook-block.tex)
+- [Encoder and full pixel-decoder paths](figures/notebook-architecture.tex)
+- [The first U and its projected skip connections](figures/notebook-u.tex)
+- [A conditioned convolution block](figures/notebook-block.tex)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.6 PDF](regae-draft-v0.6.pdf) and [v0.6 sources](regae-draft-v0.6-source.zip); [v0.5.1 PDF](regae-draft-v0.5.1.pdf) and [v0.5.1 sources](regae-draft-v0.5.1-source.zip); [v0.5 PDF](regae-draft-v0.5.pdf) and [v0.5 sources](regae-draft-v0.5-source.zip); [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.7 PDF](regae-draft-v0.7.pdf) and [v0.7 sources](regae-draft-v0.7-source.zip); [v0.6 PDF](regae-draft-v0.6.pdf) and [v0.6 sources](regae-draft-v0.6-source.zip); [v0.5.1 PDF](regae-draft-v0.5.1.pdf) and [v0.5.1 sources](regae-draft-v0.5.1-source.zip); [v0.5 PDF](regae-draft-v0.5.pdf) and [v0.5 sources](regae-draft-v0.5-source.zip); [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+
+## Changes in version 0.8
+
+This revision redraws the explanatory figures. Read the family diagram for what changes across denoising steps, the Pandora composition for what moves between the two models, and the implementation figures for the operations and tensor shapes in a single call. The training plots still reproduce the original notebook outputs. The [figure design note](https://github.com/magnux/neural_pandoras_cluster/blob/main/docs/regae-figure-design.md) explains the visual conventions and links to the diagram research that informed them. This revision adds no performance measurements.
 
 ## Changes in version 0.7
 
@@ -92,7 +97,11 @@ NVD is reserved for its own manuscript, and the broader intelligence-as-compress
 
 The sliding-tile puzzle uses an original AI-generated illustration of a spiral galaxy (`figures/galaxy-art.jpg`). It is neither a JWST observation nor a ReGAE output. The TikZ source (`figures/galaxy-puzzle.tex`) cuts one image into squares and places them without rotation. Starting from a solved 4 × 4 board with the bottom-right square empty, moving the vacancy left, up, right, up, left, then down gives the arrangement in the paper.
 
-`figures/architecture.tex` illustrates recurrent state updates with and without an encoder-derived code. Its arrows denote computational steps. Tensor faces represent spatial dimensions and depth represents channels; sizes are labeled rather than drawn to scale. `figures/representation-model.tex` is a code-grounded schematic of the Pandora composition, showing separate learned parameters and state reuse. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
+In `figures/architecture.tex`, the same decoder is drawn twice to show two updates to the image while its code stays fixed. `figures/representation-model.tex` separates gencoder training on overlapping observations from subsequent sampling and pixel decoding. The telescope image in this diagram is a display crop, not a neural reconstruction.
+
+`figures/pandora-display-detail.jpg` reproduces the full [1,496 × 1,496 display detail](https://github.com/stephenmwilkins/jwst-first-years-gallery/blob/main/images/gallery/main/weic2305a.jpg) of [Pandora’s Cluster, Abell 2744 (JWST/NIRCam)](https://esawebb.org/images/weic2305a/). No local crop or resampling was applied. The outlines of source and shifted crops are schematic overlays, not a full-resolution training grid. Credit: NASA, ESA, CSA, Ivo Labbe (Swinburne), Rachel Bezanson (University of Pittsburgh); image processing: Alyssa Pagan (STScI).
+
+`figures/notebook-architecture.tex`, `figures/notebook-u.tex`, and `figures/notebook-block.tex` trace the v2 tensors and operations. The tensor drawings label spatial size and channel count; their proportions are schematic. `figures/time-fields.tex` places the same test state on two illustrative fields; its contours and paths are not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
 
 | File | Zero-based notebook cell | SHA-256 |
 | --- | --- | --- |

@@ -1,21 +1,33 @@
-% Internal branches of the v2 convolution block; optional functions are not always active together.
-\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
-\input{figures/tensor-styles}
-\node[rghead] at (0,3.15){The shared convolution block};
-\node[rgspec,anchor=west] at (5.10,3.15){The two summands are learned transformations of the same feature map $W$.};
-\node[rgnet,minimum width=2.08cm] (w) at (1.13,1.64){$3\times3$ conv\\$+\,P$ (if used)};
-\draw[rgflow] (w.east)--(2.80,1.64)--(2.80,2.47)--(5.57,2.47);
-\node[rgnet,minimum width=2.34cm] (linear) at (6.75,2.47){$1\times1$ projection};
-\node[rgnet,minimum width=2.15cm] (a) at (4.12,.91){normalize$^*$\\code affine$^*$};
-\node[rgnet,minimum width=2.15cm] (b) at (7.12,.91){attention$^*$\\$+$ residual};
-\node[rgnet,minimum width=2.37cm] (c) at (10.22,.91){$1\times1$, GELU, $1\times1$};
-\node[rgnet,minimum width=2.03cm] (d) at (13.04,.91){code gain$^*$};
-\node[rgplus] (sum) at (15.11,1.64){$+$};
-\draw[rgflow] (2.80,1.64)--(2.80,.91)--(a.west);
-\draw[rgflow] (a.east)--(b.west);\draw[rgflow] (b.east)--(c.west);\draw[rgflow] (c.east)--(d.west);
-\draw[rgflow] (d.east)--(15.11,.91)--(sum.south);
-\draw[rgflow] (linear.east)--(15.11,2.47)--(sum.north);
-\draw[rgflow] (sum.east)--(16.41,1.64);
-\node[rgspec,above] at (2.67,1.68){$W$};
-\node[rgspec,anchor=west] at (0,.03){$^*$Optional by block type. A conditioned block uses its own stage slice of $z$; ordinary attention blocks have no external code input.};
+% Explicitly instantiate one conditioned ConvBlock and contrast the regular pair.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\small]
+\input{figures/notebook-visuals}
+\nvheading{0}{5.00}{B}{One stage on either arm of the pixel decoder}
+\node[nvsm,anchor=east] at (16.7,5.00){Example: a normalized stage in the first U.};
+\node[nvsm,anchor=west] at (.05,4.22){Stage input};
+\node[nvop,minimum width=3.28cm,draw=nvAmber,fill=nvGold!65] (condition) at (4.03,4.22){Conditioned block};
+\node[nvop,minimum width=3.87cm] (att) at (8.78,4.22){Block with patch attention};
+\node[nvop,minimum width=3.03cm] (plain) at (12.92,4.22){Block without attention};
+\node[nvsm,anchor=east] (stageout) at (16.70,4.22){Stage output};
+\draw[nvline] (1.58,4.22)--(condition.west);
+\draw[nvline] (condition.east)--(att.west);\draw[nvline] (att.east)--(plain.west);\draw[nvline,shorten >=2pt] (plain.east)--(stageout.west);
+\draw[nvRule,line width=.65pt] (0,3.63)--(16.69,3.63);
+\node[nvhead,text=nvAmber] at (0,3.20){Inside the conditioned block};
+\node[nvsm,anchor=east,text=nvAmber] at (16.69,3.20){Its slice of $z$ supplies three channel vectors: $m$, $a$ and $e$.};
+\node[nvsm,anchor=west] at (0,1.45){Input};
+\node[nvop,minimum width=1.53cm] (conv) at (2.20,1.45){$3\!\times\!3$ conv};
+\coordinate (split) at (3.43,1.45);
+\node[nvsm,below left=1pt] at (split){$W$};
+\node[nvop,minimum width=2.24cm] (linear) at (8.28,2.32){$1\!\times\!1$ projection};
+\node[nvop,minimum width=1.46cm] (norm) at (4.81,.72){normalize};
+\node[nvop,minimum width=2.76cm,draw=nvAmber,fill=nvGold!50] (aff) at (7.24,.72){$(1+m)\odot H+a$};
+\node[nvop,minimum width=3.00cm] (mlp) at (10.43,.72){$1\!\times\!1$, GELU, $1\!\times\!1$};
+\node[nvop,minimum width=1.47cm,draw=nvAmber,fill=nvGold!50] (gain) at (13.11,.72){$e\odot N$};
+\node[nvmath] (add) at (14.62,1.45){$+$};
+\node[nvsm,anchor=east] at (16.65,1.45){Output};
+\draw[nvline] (.90,1.45)--(conv.west);\draw[nvline] (conv.east)--(split)--(3.43,2.32)--(linear.west);
+\draw[nvline] (split)|-(norm.west);\draw[nvline] (norm.east)--(aff.west);\draw[nvline] (aff.east)--(mlp.west);
+\draw[nvline] (mlp.east)--(gain.west);\draw[nvline] (gain.east)-|(add.south);
+\draw[nvline] (linear.east)-|(add.north);\draw[nvline] (add.east)--(15.73,1.45);
+\fill[nvInk] (split) circle[radius=1.25pt];
+\node[nvsm,anchor=west] at (.03,.10){$H$ is the normalized feature; $N$ is the pointwise network output. Only the lower branch uses the stage code.};
 \end{tikzpicture}

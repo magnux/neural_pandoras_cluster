@@ -42,19 +42,20 @@ where $n_\ell$ counts the entries in each feature tensor. Training scores one de
 
 \subsection{Denoiser architecture and multiplicative gate}
 
-Figure~\ref{fig:notebook-architecture} follows the v2 tensors through the encoder, one decoder call, and the first of its two U-shaped passes. A four-convolution inlet preserves spatial resolution. At three matching resolutions, projected features from the down path are added on the up path. The first U normalizes features along the nonlinear branch of its convolution blocks; the second U omits that normalization. In the pixel decoder, each U projects the patch code into eight slices, one for each down or up stage. Dedicated blocks use these slices to scale and shift features and gate their nonlinear outputs (Fig.~\ref{fig:notebook-block}). The gencoder instead takes a window of 256-channel codes as its state; its constructor omits the conditioning blocks entirely.
+Figure~\ref{fig:notebook-architecture} follows a patch through the v2 encoder and shows how its code reaches both U-shaped passes of the pixel decoder. Figure~\ref{fig:notebook-block} opens the first U and one of its conditioned blocks. A four-convolution inlet preserves spatial resolution. At three matching resolutions, projected features from the down path are added on the up path. The first U normalizes features along the nonlinear branch of its convolution blocks; the second U omits that normalization. In the pixel decoder, each U projects the patch code into eight slices, one for each down or up stage. Dedicated blocks use these slices to scale and shift features and gate their nonlinear outputs (Fig.~\ref{fig:notebook-block}). The gencoder instead takes a window of 256-channel codes as its state; its constructor omits the conditioning blocks entirely.
 
 \begin{figure*}[t]
  \centering
  \resizebox{.99\textwidth}{!}{\input{figures/notebook-architecture}}
- \caption{Tensor paths in the v2 Pandora implementation. (A) Each encoder stage applies two convolution blocks and halves the spatial size. Flattening the last tensor gives 1,024 entries; two residual linear blocks map these to 256 and then to the final 256-value code. (B) One pixel-decoder update. (C) Outputs of the eight stages of the first U. The 4-by-4 down and up stages are distinct; the three skips above them use addition, not concatenation. The second U has the same spatial path but different channel widths. Sizes are exact; cuboid proportions are not to scale.}
+ \caption{The v2 patch autoencoder. (A) Read left to right: each encoder stage applies two convolution blocks and halves the side length. The readout flattens $2\times2\times256$ features and applies two residual linear blocks ($1024\to256\to256$). (B) Read the lower path: one denoiser call takes an RGB state and returns another. The dashed line carries the same patch code to both U modules. The first produces 64 values $V$ and 64 scores $G$ per spatial site; the gate multiplies $V$ by the bounded gain before the second U. Numbers on links denote channels. Tensor proportions are schematic.}
  \label{fig:notebook-architecture}
 \end{figure*}
 
 \begin{figure*}[t]
  \centering
- \resizebox{.97\textwidth}{!}{\input{figures/notebook-block}}
- \caption{An internal v2 convolution block. The upper branch projects the convolutional features before normalization or modulation. In a conditioned block, the nonlinear branch transforms its features as $(1+m)\odot H+a$ and multiplies its pointwise output by $e$; all three vectors come from its local slice of $z$. The learned position map $P$, when enabled, locates a feature inside a patch or window, not in the whole mosaic.}
+ \resizebox{.98\textwidth}{!}{\input{figures/notebook-u}}\\[5pt]
+ \resizebox{.98\textwidth}{!}{\input{figures/notebook-block}}
+ \caption{Inside the first U of the pixel decoder. (A) Each row is one spatial resolution. The descending and ascending tensors show stage outputs. A skip is a learned $1\times1$ projection: its output is added to the upsampled feature \emph{before} the matching up stage. There is no concatenation. (B) Each stage first applies a dedicated code-conditioned block, then two ordinary blocks. The cutaway traces the conditioned instance, where neither the learned position map nor attention is active. Ordinary blocks have within-window position maps, and the first of the pair also uses attention. The second U omits branch normalization; the gencoder omits the conditioned block altogether.}
  \label{fig:notebook-block}
 \end{figure*}
 

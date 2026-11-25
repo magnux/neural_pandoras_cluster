@@ -1,0 +1,37 @@
+% Figure grammar: maps are dimensioned volumes; named operators are rectangles.
+% Amber dashed links carry a fixed encoder code; ordinary data flow is solid.
+\definecolor{nvInk}{HTML}{172E3B}
+\definecolor{nvBlue}{HTML}{11665F}
+\definecolor{nvLight}{HTML}{E2F0EB}
+\definecolor{nvMid}{HTML}{75B2A3}
+\definecolor{nvDark}{HTML}{307F73}
+\definecolor{nvAmber}{HTML}{90410F}
+\definecolor{nvGold}{HTML}{F4E0B7}
+\definecolor{nvMute}{HTML}{455B62}
+\definecolor{nvRule}{HTML}{BDCECA}
+\tikzset{nvline/.style={draw=nvInk,line width=.85pt,-{Latex[length=1.8mm,width=1.2mm]},line join=round},
+ nvcondition/.style={draw=nvAmber,dash pattern=on 3pt off 1.6pt,line width=1pt,-{Latex[length=1.8mm,width=1.2mm]},line join=round},
+ nvskip/.style={draw=nvDark,line width=1.05pt,-{Latex[length=1.8mm,width=1.2mm]}},
+ nvhead/.style={font=\sffamily\bfseries\normalsize,text=nvInk,anchor=west,inner sep=0pt},
+ nvtxt/.style={font=\sffamily\small,text=nvInk,inner sep=1.5pt,align=center},
+ nvsm/.style={font=\sffamily\footnotesize,text=nvMute,inner sep=.8pt,align=center},
+ nvop/.style={draw=nvInk,fill=white,line width=.65pt,inner sep=3pt,font=\sffamily\bfseries\footnotesize,text=nvInk,align=center,minimum height=.6cm},
+ nvmath/.style={circle,draw=nvInk,line width=.75pt,fill=white,text=nvInk,font=\sffamily\bfseries\footnotesize,inner sep=0pt,minimum size=.37cm},
+ nvpanel/.style={font=\sffamily\bfseries\footnotesize,fill=nvInk,text=white,minimum width=.43cm,minimum height=.43cm,inner sep=.5pt}}
+\def\nvheading#1#2#3#4{\node[nvpanel,anchor=west] at (#1,#2) {#3};\node[nvhead] at ({#1+.60},#2){#4};}
+% The front square encodes H and W. The depth axis depicts C; no metric scale.
+\def\nvmap#1#2#3#4#5{\begin{scope}[shift={(#2,#3)}]
+\path[draw=nvBlue,line width=.68pt,fill=nvMid] ({-#4/2},{#4/2})--++(#5,{.55*#5})--++(#4,0)--++({-#5},{-.55*#5})--cycle;
+\path[draw=nvBlue,line width=.68pt,fill=nvDark] ({#4/2},{-#4/2})--++(#5,{.55*#5})--++(0,#4)--++({-#5},{-.55*#5})--cycle;
+\path[draw=nvBlue,line width=.68pt,fill=nvLight] ({-#4/2},{-#4/2}) rectangle ({#4/2},{#4/2});
+\foreach \ii in {.25,.5,.75}{\draw[white,opacity=.43,line width=.32pt] ({#4/2+#5*\ii},{-#4/2+.55*#5*\ii+.015})--++(0,{#4-.03});}
+\coordinate (#1L) at ({-#4/2},0); \coordinate (#1R) at ({#4/2+#5},{.275*#5});\coordinate (#1B) at (0,{-#4/2});\coordinate (#1T) at (0,{#4/2+.55*#5});
+\end{scope}}
+\def\nvstrip#1#2#3{\begin{scope}[shift={(#2,#3)}]
+\path[draw=nvAmber,fill=nvGold,line width=.75pt] (-.65,-.22) rectangle (.65,.22);
+\foreach \x in {-.47,-.29,-.11,.07,.25,.43}{\draw[nvAmber!68,line width=.42pt] (\x,-.22)--(\x,.22);}
+\coordinate (#1L) at (-.65,0);\coordinate (#1R) at (.65,0);\coordinate (#1B) at (0,-.22);
+\end{scope}}
+\def\nvumodule#1#2#3#4{\node[nvop,minimum width=1.72cm,minimum height=1.24cm] (#1) at (#2,#3){};
+\begin{scope}[shift={(#2,#3)}]\draw[nvBlue,line width=1.18pt] (-.63,.34)--(-.63,.18)--(-.40,.18)--(-.40,.01)--(-.18,.01)--(-.18,-.13)--(.18,-.13)--(.18,.01)--(.40,.01)--(.40,.18)--(.63,.18)--(.63,.34);
+\draw[nvMid,line width=.5pt] (-.57,.27)--(.57,.27) (-.34,.09)--(.34,.09);\node[font=\sffamily\bfseries\footnotesize,text=nvInk] at (0,-.38){#4};\end{scope}}

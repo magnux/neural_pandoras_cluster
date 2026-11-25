@@ -1,33 +1,53 @@
-% Training data flow is distinct from the two trained networks used for sampling.
-\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
-\input{figures/tensor-styles}
-\node[rghead] at (0,4.05) {A\quad Where the gencoder's training targets come from};
-\rgvolume{x}{.83}{2.98}{.81}{.81}{.12}{rgTeal}
-\node[rgspec,below=1pt] at (x-S){RGB crop};
-\node[rgnet,minimum width=1.63cm] (e) at (3.04,3.00){fixed $E_\phi$};
-\rgvolume{z}{5.12}{2.98}{.86}{.24}{.25}{rgAmber}
-\node[rgspec,below=4pt] at (z-S){one 256-value code};
-\rgvolume{grid}{8.34}{2.99}{1.02}{.77}{.34}{rgAmber}
-\foreach \d in {1,2,3}{\draw[rgAmber!55,line width=.3pt] ({7.83+.255*\d},2.61)--++(0,.76); \draw[rgAmber!55,line width=.3pt] (7.83,{2.61+.19*\d})--++(1.02,0);}
-\node[rgspec,below=2pt] at (grid-S){ordered code grid};
-\node[align=left,anchor=west,text=rgInk] at (11.00,2.99){Pair a source window $Z^-$ with the codes $Z^+$\\the encoder produces for a displaced view.};
-\draw[rgflow] (x-E)--(e.west); \draw[rgcode] (e.east)--(z-W);
-\draw[rgcode] (z-E)--node[rgspec,above=3pt]{place by site}(grid-W);
-\draw[rgdata] (grid-E)--(10.95,3.04);
-\draw[rgMuted!23] (0,2.06)--(16.77,2.06);
-\node[rghead] at (0,1.69) {B\quad How a predicted code window becomes an image};
-\rgvolume{win}{.83}{.72}{.76}{.68}{.36}{rgAmber}
-\node[rgspec,below=2pt] at (win-S){code window};
-\node[rgnet,minimum width=1.76cm] (g) at (3.33,.74){gencoder $G_\psi$};
-\rgvolume{w2}{5.70}{.72}{.76}{.68}{.36}{rgAmber}
-\node[rgspec,below=2pt] at (w2-S){predicted codes};
-\node[rgnet,minimum width=2.33cm] (d) at (9.37,.75){pixel decoder $D_\theta$};
-\rgvolume{out}{12.42}{.70}{.85}{.85}{.09}{rgTeal}
-\node[rgspec,anchor=west,align=left] at (13.37,.72){Tile the decoded patches:\\$1024\times1024\times3$ pixels.};
-\draw[rgflow] (win-E)--(g.west);\draw[rgflow] (g.east)--(w2-W);
-\draw[rgcode] (w2-E)--node[rgspec,above=6pt]{one code}(d.west);\draw[rgflow] (d.east)--(out-W);
-\draw[rgflow] (w2-E)--(6.72,.815)--(6.72,-.27)--(.14,-.27)--(.14,.72)--(win-W);
-\node[rgspec,fill=white,inner xsep=2pt] at (3.01,-.27){reuse predictions in the latent canvas};
-\node[rgspec,align=center] (noise) at (9.37,-.25){fresh pixel noise};
-\draw[rgflow] (noise.north)--(d.south);
+% The image is an observational display illustration, never a model output.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\small,
+  >={Latex[length=1.9mm,width=1.35mm]},
+  ff/.style={->,draw=black!80,line width=.85pt},
+  hdr/.style={anchor=west,font=\sffamily\bfseries\normalsize,inner sep=0pt},
+  note/.style={font=\sffamily\footnotesize,text=black!73,align=center,inner sep=1.5pt},
+  mod/.style={draw=teal!60!black,fill=teal!8,line width=.8pt,minimum height=.63cm,minimum width=1.51cm,inner xsep=3pt,align=center,font=\sffamily\bfseries\small},
+  dat/.style={draw=orange!60!black,fill=orange!10,line width=.72pt,minimum height=.57cm,inner xsep=4pt,align=center},
+  state/.style={draw=black!60,fill=white,line width=.65pt,minimum height=.6cm,inner xsep=4pt,align=center},
+]
+\node[hdr] at (0,6.08) {A\quad Train on two views of the same sky};
+\node[note,anchor=east] at (16.12,6.08) {Only the gencoder's weights change.};
+\node[inner sep=0pt] at (1.72,4.06) {\includegraphics[width=3.18cm,height=3.18cm]{figures/pandora-display-detail.jpg}};
+% Each displayed cell represents a whole pixel patch; line weights key the views.
+\foreach \dx in {0,.66,1.32}{%
+ \draw[white,line width=1.45pt] ({.92+\dx},4.79)--++(0,-1.32);
+ \draw[white,line width=1.45pt] (.92,{4.79-\dx})--++(1.32,0);}
+\foreach \dx in {0,.66,1.32}{%
+ \draw[orange!75,line width=1.15pt,dash pattern=on 2.2pt off 1pt] ({1.085+\dx},4.625)--++(0,-1.32);
+ \draw[orange!75,line width=1.15pt,dash pattern=on 2.2pt off 1pt] (1.085,{4.625-\dx})--++(1.32,0);}
+\node[note] at (1.72,2.18) {Webb mosaic (display detail)};
+\node[anchor=west,inner sep=0pt] at (3.76,5.55) {Encode each crop with the same frozen $E_\phi$.};
+\draw[line width=1.10pt,black!75] (3.78,4.81)--(4.26,4.81);
+\node[note,anchor=west] at (4.33,4.81) {source crops};
+\draw[orange!60!black,line width=1.15pt,dash pattern=on 2.2pt off 1pt] (3.78,3.52)--(4.26,3.52);
+\node[note,anchor=west] at (4.33,3.52) {shifted crops};
+\node[dat] (src) at (7.35,4.81) {codes $R^-$};
+\node[dat] (tgt) at (7.35,3.52) {codes $R^+$};
+\draw[ff] (6.05,4.81)--(src.west);
+\draw[ff] (6.05,3.52)--(tgt.west);
+\node[mod] (g) at (11.23,4.81) {gencoder $G_\psi$};
+\draw[ff] (src.east)--node[note,above=2pt]{corrupt}(g.west);
+\node[state] (pred) at (14.55,4.81) {predicted codes};
+\draw[ff] (g.east)--(pred.west);
+\node[note,text=black!87] (err) at (14.55,3.52) {$L_1$ error};
+\draw[ff] (pred.south)--(err.north);
+\draw[ff] (tgt.east)--node[note,above=2pt]{target}(err.west);
+\node[note,anchor=west] at (3.76,2.45) {One code describes a $32\!\times\!32$ patch. Each target crop starts about eight pixels down and right.};
+\draw[black!28,line width=.5pt] (0,1.84)--(16.12,1.84);
+\node[hdr] at (0,1.43) {B\quad Sample in code space, then render the pixels};
+\node[state] (w0) at (1.14,.54) {code window};
+\node[mod] (g2) at (4.22,.54) {gencoder $G_\psi$};
+\node[dat] (w1) at (7.48,.54) {predicted window};
+\node[mod] (d2) at (11.33,.54) {decoder $D_\theta$};
+\node[state] (rgb) at (14.90,.54) {RGB image tile};
+\foreach \l/\r in {w0/g2,g2/w1,d2/rgb}{\draw[ff] (\l.east)--(\r.west);}
+\draw[ff] (w1.east)--node[note,above=2pt]{per code}(d2.west);
+\draw[ff] (w1.south)--(7.48,-.34)--(1.14,-.34)--(w0.south);
+\node[note,fill=white,inner xsep=3pt] at (4.36,-.34){feed predictions back into the canvas};
+\node[note] (noise) at (11.33,-.38){pixel noise};
+\draw[ff] (noise.north)--(d2.south);
+\node[note] at (14.90,-.26){$1024\!\times\!1024\!\times\!3$};
 \end{tikzpicture}

@@ -54,7 +54,7 @@ Consider restarting a decoder on a partially damaged image. The intact pixels st
 \begin{figure*}[t]
   \centering
   \input{figures/time-fields}
-  \caption{Two ways to update a state on the same illustrative landscape. In (A), colors mark successive sampling stages. Their state distributions can overlap, and time can be continuous~\cite{sde}. In (B), the ReGAE decoder with a fixed code uses one map for a noise initialization and a damaged state. The paths and contours illustrate the two rules; they are not measured trajectories or a learned energy surface.}
+  \caption{Two update rules on identical schematic contours. The open circle marks the same state $u_*$ in both panels. The black arrows below compare single evaluations at that state, not successive steps. In (A), the time input can select different updates; colored bands suggest stages, not disjoint state distributions, and time may be continuous~\cite{sde}. In (B), $\Delta_z(u)=D_\theta(u,z)-u$ depends only on the current state for fixed $z$. The solid path starts from noise; the dashed path restarts from damage. Neither the paths nor the contours are measured.}
   \label{fig:time-fields}
 \end{figure*}
 
