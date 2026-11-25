@@ -2,7 +2,7 @@
 
 In draft 0.7, reaching the end of an arrow still left a reader with questions. Did the decoder recompute the code on each pass? Did the skip connect two tensors directly, or did something happen before the addition? The architecture figures in 0.8 are organized around answering those questions from the drawing.
 
-[Compare the old and revised U figure on one page](../papers/regae/previews/first-u-comparison-v0.8.pdf).
+The [current paper](../papers/regae/regae.pdf) contains the updated figures. For the design history, [compare the two U drawings](https://github.com/magnux/neural_pandoras_cluster/blob/49e2bc988eed7a42e72b6e1c120fb800cb06d1f6/papers/regae/previews/first-u-comparison-v0.8.pdf) in the v0.8 snapshot.
 
 ## What informed the revision
 

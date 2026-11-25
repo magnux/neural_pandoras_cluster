@@ -1,10 +1,8 @@
 .PHONY: all clean
 
-all: regae-draft-v0.8.pdf
-
-regae-draft-v0.8.pdf: main.tex references.bib cvpr.sty ieeenat_fullname.bst $(wildcard sections/*.tex) $(wildcard figures/*)
-	latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
-	cp main.pdf regae-draft-v0.8.pdf
+all:
+	latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex
+	cp build/main.pdf regae.pdf
 
 clean:
-	latexmk -c main.tex
+	rm -rf -- build

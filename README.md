@@ -4,7 +4,11 @@ Exploratory research on **Regenerative Autoencoders (ReGAE)** and **Neural Vapor
 
 ReGAE is a family of models for generation and regeneration through iterative denoising. A conditional ReGAE combines an encoder with a shape-preserving denoiser; an unconditional variant omits the encoder and external code. The Pandora's Cluster experiments compose two instances to learn image samples and spatial relationships among their representations. NVD investigates progressive parameter-block growth and later structured removal. A companion essay will examine learning through the lens of compression.
 
-This repository is a research archive and publication workspace. It preserves four original notebook snapshots and organizes the existing evidence for two research papers and one opinion essay. The [revised ReGAE paper draft (v0.8)](papers/regae/regae-draft-v0.8.pdf) is available in PDF, with [LaTeX sources and build instructions](papers/regae/). Selected generated images, videos, and checkpoints will be added separately. No new training experiments were run to prepare the archive or manuscript drafts.
+**ReGAE paper:** [Read the PDF](papers/regae/regae.pdf) · [LaTeX source and build instructions](papers/regae/)
+
+**Research talk:** [Editable PowerPoint with speaker notes](presentations/regae/regae.pptx) · [View the slides as a PDF](presentations/regae/regae.pdf)
+
+The archive preserves four original notebooks. The paper and talk draw on those experiments; no new training runs were performed to prepare them.
 
 ## Research directions
 
@@ -32,7 +36,8 @@ The connecting essay will distinguish compact representations, total model-and-d
 
 | Path | Contents |
 | --- | --- |
-| [papers/regae/](papers/regae/) | ReGAE revised draft (v0.8), LaTeX sources, references, figures, and prior versions |
+| [papers/regae/](papers/regae/) | Current manuscript PDF and the LaTeX source, bibliography, and figures needed to build it |
+| [presentations/regae/](presentations/regae/) | Research talk in editable PowerPoint and PDF formats |
 | [notebooks/](notebooks/) | Four original notebook snapshots, provenance notes, and SHA-256 checksums |
 | [docs/regae-narrative-plan.md](docs/regae-narrative-plan.md) | Writing direction for the paper, including the information motivation and the use of encoder responses for meta-modeling |
 | [docs/publication-roadmap.md](docs/publication-roadmap.md) | Publication scope, outlines, proposed figures, and related work |

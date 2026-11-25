@@ -44,5 +44,7 @@ video_out/
 *.out
 /papers/*/main.log
 /papers/*/main.pdf
-# Include the compiled bibliography in the portable ReGAE sources.
-!/papers/regae/main.bbl
+# Keep one current paper PDF. Version history lives in Git.
+/papers/regae/build/
+/papers/regae/regae-draft-v*.pdf
+/papers/regae/regae-draft-v*-source.zip
