@@ -4,7 +4,7 @@
   x=1cm,y=1cm,font=\sffamily\footnotesize,
   >={Latex[length=1.7mm,width=1.2mm]},
   frame/.style={draw=black!35,line width=.5pt,rounded corners=1.5pt},
-  contour/.style={draw=black!17,line width=.55pt},
+  contour/.style={draw=black!25,line width=.55pt},
   field/.style={->,draw=black!40,line width=.6pt},
   update/.style={->,line width=1.05pt},
   smallnote/.style={font=\sffamily\scriptsize,text=black!70,align=center}
@@ -19,12 +19,12 @@
   {$\Delta_z(u)=D_{\theta}(u,z)-u$: fixed code $z$};
 % Same contour geometry and noise-to-target path as the ReGAE panel.
 % Colored bands suggest successive sampling regimes, not disjoint supports.
-\path[fill=orange!14] (0,1.05) rectangle (7.45,3.97);
+\path[fill=orange!15] (0,1.05) rectangle (7.45,3.97);
 \begin{scope}
   \clip (0,1.05) rectangle (7.45,3.97);
-  \path[fill=violet!13] (5.10,2.30)
+  \path[fill=violet!15] (5.10,2.30)
     ellipse[x radius=2.66cm,y radius=1.48cm];
-  \path[fill=teal!16] (5.10,2.30)
+  \path[fill=teal!19] (5.10,2.30)
     ellipse[x radius=1.37cm,y radius=.87cm];
   \foreach \rx/\ry in {.40/.27,.83/.55,1.37/.87,1.99/1.15,2.66/1.48,3.35/1.82}{
     \draw[contour] (5.10,2.30) ellipse[x radius=\rx cm,y radius=\ry cm];
@@ -34,26 +34,26 @@
   \draw[field] (6.71,1.55)--(6.22,1.86);
 \end{scope}
 \draw[frame] (0,1.05) rectangle (7.45,3.97);
-\draw[update,draw=blue!65!black] (.75,1.48) to[out=4,in=205] (2.05,1.80);
-\draw[update,draw=blue!65!black] (2.05,1.80) to[out=35,in=190] (3.20,2.50);
-\draw[update,draw=blue!65!black] (3.20,2.50) to[out=10,in=165] (4.28,2.47);
-\draw[update,draw=blue!65!black] (4.28,2.47)--(5.10,2.30);
-\fill[blue!65!black] (.75,1.48) circle[radius=1.8pt];
-\node[smallnote,anchor=west,text=blue!65!black] at (.46,1.22)
+\draw[update,draw=teal!65!black] (.75,1.48) to[out=4,in=205] (2.05,1.80);
+\draw[update,draw=teal!65!black] (2.05,1.80) to[out=35,in=190] (3.20,2.50);
+\draw[update,draw=teal!65!black] (3.20,2.50) to[out=10,in=165] (4.28,2.47);
+\draw[update,draw=teal!65!black] (4.28,2.47)--(5.10,2.30);
+\fill[teal!65!black] (.75,1.48) circle[radius=1.8pt];
+\node[smallnote,anchor=west,text=teal!65!black] at (.46,1.22)
   {noise initialization};
 \filldraw[fill=black,draw=white,line width=.5pt]
   (5.10,2.30) circle[radius=2.3pt];
 \node[smallnote,anchor=north] at (5.10,2.13)
   {illustrative target};
-\node[font=\sffamily\small,text=orange!65!black] at (1.12,3.60) {$t_1$};
+\node[font=\sffamily\small,text=orange!70!black] at (1.12,3.60) {$t_1$};
 \node[font=\sffamily\small,text=violet!75!black] at (3.42,2.96) {$t_2$};
 \node[font=\sffamily\small,text=teal!65!black] at (5.18,2.90) {$t_3$};
 \node[smallnote] at (3.73,.60)
-  {Colored bands: successive time-conditioned stages.};
+  {Color: successive stages of the time input.};
 \draw[black!15,line width=.5pt] (7.75,.35)--(7.75,5.28);
 % A single fixed code-conditioned state-update map. Contours are illustrative
 % guides only; they do not imply that the map is an energy gradient.
-\path[fill=blue!2] (8.2,1.05) rectangle (15.65,3.97);
+\path[fill=teal!3] (8.2,1.05) rectangle (15.65,3.97);
 \begin{scope}
   \clip (8.2,1.05) rectangle (15.65,3.97);
   \foreach \rx/\ry in {.40/.27,.83/.55,1.37/.87,1.99/1.15,2.66/1.48,3.35/1.82}{
@@ -65,25 +65,25 @@
 \end{scope}
 \draw[frame] (8.2,1.05) rectangle (15.65,3.97);
 % Two hand-constructed trajectories, with arrows marking repeated updates.
-\draw[update,draw=blue!65!black] (8.95,1.48) to[out=4,in=205] (10.25,1.80);
-\draw[update,draw=blue!65!black] (10.25,1.80) to[out=35,in=190] (11.40,2.50);
-\draw[update,draw=blue!65!black] (11.40,2.50) to[out=10,in=165] (12.48,2.47);
-\draw[update,draw=blue!65!black] (12.48,2.47)--(13.30,2.30);
-\fill[blue!65!black] (8.95,1.48) circle[radius=1.8pt];
-\node[smallnote,anchor=west,text=blue!65!black] at (8.66,1.22)
+\draw[update,draw=teal!65!black] (8.95,1.48) to[out=4,in=205] (10.25,1.80);
+\draw[update,draw=teal!65!black] (10.25,1.80) to[out=35,in=190] (11.40,2.50);
+\draw[update,draw=teal!65!black] (11.40,2.50) to[out=10,in=165] (12.48,2.47);
+\draw[update,draw=teal!65!black] (12.48,2.47)--(13.30,2.30);
+\fill[teal!65!black] (8.95,1.48) circle[radius=1.8pt];
+\node[smallnote,anchor=west,text=teal!65!black] at (8.66,1.22)
   {noise initialization};
-\draw[update,draw=orange!80!black] (14.70,3.45) to[out=238,in=45] (14.20,2.94);
-\draw[update,draw=orange!80!black] (14.20,2.94)--(13.75,2.59);
-\draw[update,draw=orange!80!black] (13.75,2.59)--(13.30,2.30);
-\fill[orange!80!black] (14.70,3.45) circle[radius=1.8pt];
-\node[smallnote,anchor=east,text=orange!80!black] at (15.32,3.73)
+\draw[update,draw=orange!75!black] (14.70,3.45) to[out=238,in=45] (14.20,2.94);
+\draw[update,draw=orange!75!black] (14.20,2.94)--(13.75,2.59);
+\draw[update,draw=orange!75!black] (13.75,2.59)--(13.30,2.30);
+\fill[orange!75!black] (14.70,3.45) circle[radius=1.8pt];
+\node[smallnote,anchor=east,text=orange!75!black] at (15.32,3.73)
   {perturbed state};
 \filldraw[fill=black,draw=white,line width=.5pt]
   (13.30,2.30) circle[radius=2.3pt];
 \node[smallnote,anchor=north] at (13.30,2.13)
   {illustrative target};
 \node[smallnote] at (11.93,.60)
-  {States evolve under one code-conditioned update map.};
+  {One fixed code selects a single update map.};
 \node[smallnote] at (7.83,-.02)
   {Illustrative fields; no learned energy surface is assumed.};
 \end{tikzpicture}

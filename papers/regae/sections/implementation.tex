@@ -42,7 +42,23 @@ where $n_\ell$ counts the entries in each feature tensor. Training scores one de
 
 \subsection{Denoiser architecture and multiplicative gate}
 
-The notebook implements the denoiser architecture in a class named \texttt{Decoder}. A convolutional input layer feeds a U-shaped network with group normalization, followed by a multiplicative gate, a second U-shaped network without normalization, and an output projection. Skip connections across scales, learned positions relative to the window, and attention allow features from different parts of the window to interact. In the image decoder, the patch code modulates intermediate features through learned additive and multiplicative terms. In the gencoder, the code window itself is the input state, and the separate modulation pathway is disabled.
+Figure~\ref{fig:notebook-architecture} follows the v2 tensors through the encoder, one decoder call, and the first of its two U-shaped passes. A four-convolution inlet preserves spatial resolution. At three matching resolutions, projected features from the down path are added on the up path. The first U normalizes features along the nonlinear branch of its convolution blocks; the second U omits that normalization. In the pixel decoder, each U projects the patch code into eight slices, one for each down or up stage. Dedicated blocks use these slices to scale and shift features and gate their nonlinear outputs (Fig.~\ref{fig:notebook-block}). The gencoder instead takes a window of 256-channel codes as its state; its constructor omits the conditioning blocks entirely.
+
+\begin{figure*}[t]
+ \centering
+ \resizebox{.99\textwidth}{!}{\input{figures/notebook-architecture}}
+ \caption{Tensor paths in the v2 Pandora implementation. (A) Each encoder stage applies two convolution blocks and halves the spatial size. Flattening the last tensor gives 1,024 entries; two residual linear blocks map these to 256 and then to the final 256-value code. (B) One pixel-decoder update. (C) Outputs of the eight stages of the first U. The 4-by-4 down and up stages are distinct; the three skips above them use addition, not concatenation. The second U has the same spatial path but different channel widths. Sizes are exact; cuboid proportions are not to scale.}
+ \label{fig:notebook-architecture}
+\end{figure*}
+
+\begin{figure*}[t]
+ \centering
+ \resizebox{.97\textwidth}{!}{\input{figures/notebook-block}}
+ \caption{An internal v2 convolution block. The upper branch projects the convolutional features before normalization or modulation. In a conditioned block, the nonlinear branch transforms its features as $(1+m)\odot H+a$ and multiplies its pointwise output by $e$; all three vectors come from its local slice of $z$. The learned position map $P$, when enabled, locates a feature inside a patch or window, not in the whole mosaic.}
+ \label{fig:notebook-block}
+\end{figure*}
+
+The first ordinary block at each U scale also projects $2\times2$ patches into feature vectors for attention. In the archived v2 implementation, queries, keys and values reach scaled dot-product attention in [batch, patch, head, feature] order. The operation therefore mixes head slots within each patch. Spatial interactions across the window still arise from convolutions and multiscale sampling.
 
 The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gate, informally called \emph{gravity}, computes
 \begin{equation}
@@ -50,7 +66,7 @@ The first U-shaped network produces two feature tensors, $h$ and $g$. The v2 gat
   \gamma(g)=\operatorname{clip}_{[0,2]}(1+g/3)+10^{-4}.
   \label{eq:regae-gravity}
 \end{equation}
-A multiplier above one amplifies the corresponding feature; a multiplier below one attenuates it. The v0 denoiser used $\widetilde h=h\odot\exp(g)$, with no upper bound. In v2 both the image decoder and the gencoder restrict the gain of this gate to $[10^{-4},2+10^{-4}]$; subsequent network layers can still amplify features.
+A multiplier above one amplifies the corresponding feature; a multiplier below one attenuates it. The v0 pixel decoder used $\widetilde h=h\odot\exp(g)$, with no upper bound. In v2 both the image decoder and the gencoder restrict the gain of this gate to $[10^{-4},2+10^{-4}]$; subsequent network layers can still amplify features.
 
 \paragraph{Historical motivation for the bounded gate.}
 The author recalls that the exponential formulation could make bright stars progressively brighter, followed by large dark regions, informally called \emph{neural black holes}. The recordings and checkpoints were not retained. An isolated gain recurrence $h_{k+1}=h_k\exp(g_k)$ gives $h_K=h_0\exp(\sum_{k<K}g_k)$, illustrating a possible amplification mechanism. This does not establish the cause of the reported darkening: no explicit overflow-triggered reset is implemented in the notebooks. The bounded formulation limits this individual multiplier, while the full network's recurrent stability remains a separate question.

@@ -22,7 +22,7 @@ The training plots below are embedded in v2. The notebook does not contain the s
 \section{Storage Accounting for the Proof of Concept}
 \label{sec:storage}
 
-The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the image decoder, and 85,479,680 for the gencoder. Each patch contains 3,072 eight-bit channel values; its 256 floating-point code values use one third as many bytes at FP32 precision. To reconstruct the patches from an ordered code grid, one must also store the decoder. Table~\ref{tab:storage} separates these uncompressed payloads in decimal megabytes; it does not assign a bitrate at a given distortion.
+The notebook reports 4,673,752 parameters for the encoder, 50,986,296 for the image decoder, and 85,479,680 for the gencoder. The bottleneck always has one twelfth as many coordinates as the network input in this configuration. Its byte count depends on the representation being compared. The source patch occupies 3,072 bytes as eight-bit RGB; the same patch as an FP32 network input occupies 12,288 bytes. The 256-entry FP32 code occupies 1,024 bytes in either comparison. Casting the RGB samples to floats does not increase their source precision. To reconstruct patches from an ordered code grid, a recipient also needs the trained decoder unless it is already shared. Table~\ref{tab:storage} separates these uncompressed payloads in decimal megabytes; it does not assign a bitrate at a given distortion.
 
 \begin{table}[t]
   \centering

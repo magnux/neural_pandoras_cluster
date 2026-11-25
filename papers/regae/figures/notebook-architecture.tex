@@ -1,0 +1,52 @@
+% Archived v2 pixel encoder/decoder. Cuboid face = spatial extent; depth = channels.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
+\input{figures/tensor-styles}
+\node[rghead] at (0,9.63) {A\quad Patch encoder};
+\node[rgspec,anchor=west] at (3.02,9.63) {Front face: height $\times$ width. Depth: channels. All tensor drawings are schematic, not to scale.};
+\foreach \n/\cx/\h/\dep/\sz/\ch/\lab in {
+ a/.67/.95/.08/32/3/RGB,
+ b/3.10/.95/.19/32/64/inlet,
+ c/5.44/.72/.27/16/112/stage 1,
+ d/7.78/.54/.36/8/160/stage 2,
+ e/10.12/.40/.44/4/208/stage 3,
+ f/12.41/.30/.52/2/256/stage 4}{
+ \rgvolume{\n}{\cx}{8.42}{\h}{\h}{\dep}{rgTeal}
+ \node[rgspec] at (\cx,9.10){\lab};
+ \node[text=rgInk,inner sep=1pt] at (\cx,7.67){$\sz^2\!\times\!\ch$};}
+\foreach \l/\r in {a/b,b/c,c/d,d/e,e/f}{\draw[rgflow] (\l-E)--(\r-W);}
+\rgvolume{zout}{15.52}{8.44}{1.01}{.24}{.26}{rgAmber}
+\node[rgspec] at (15.60,9.08){latent program $z$};
+\node[text=rgInk] at (15.59,7.67){$256$};
+\draw[rgcode] (f-E)--node[rgspec,above=1pt]{readout}(zout-W);
+\draw[rgMuted!25] (0,7.31)--(16.66,7.31);
+\node[rghead] at (0,6.98) {B\quad One decoder call};
+\node[rgspec,anchor=west] at (4.02,6.98) {The same fixed $z$ conditions both U modules. The two modules have separate weights.};
+\foreach \n/\xx/\ww/\lab in {i/.80/1.32/{$u_k$},j/3.28/1.52/{inlet},k/6.09/2.05/{first U},l/9.12/1.98/{gravity gate},m/12.00/2.04/{second U},o/15.26/2.14/{readout}}{
+ \node[rgnet,minimum width=\ww cm,minimum height=.55cm] (\n) at (\xx,6.15){\lab};}
+\foreach \n/\r/\dim in {i/j/3,j/k/64,k/l/128,l/m/64,m/o/64}{
+ \draw[rgflow] (\n.east)--node[rgspec,above]{\dim}(\r.west);}
+\node[rgspec] at (15.28,5.55){$u_{k+1}$: RGB};
+\node[rgspec,anchor=west] at (0,5.55){Link labels give channel count at $32\times32$. The gate splits 128 channels into 64 values and 64 gain scores.};
+\draw[rgMuted!25] (0,5.19)--(16.66,5.19);
+\node[rghead] at (0,4.82) {C\quad Inside the first U of the pixel decoder};
+\node[rgspec,anchor=west] at (6.73,4.82) {Teal: down/up path. Rust: $1\times1$ projection, then addition before the matching up stage.};
+% Volumes label the output of each scale's pair of main convolution blocks.
+\foreach \n/\cx/\cy/\h/\dep/\sz/\ch in {
+ L0/1.07/3.83/.82/.27/32/128,
+ L1/3.39/2.79/.67/.38/16/192,
+ L2/5.44/1.79/.51/.48/8/256,
+ L3/7.14/.73/.37/.48/4/256,
+ R3/9.69/.73/.37/.43/4/224,
+ R2/11.58/1.79/.51/.38/8/192,
+ R1/13.76/2.79/.67/.32/16/160,
+ R0/15.93/3.83/.82/.27/32/128}{
+ \rgvolume{\n}{\cx}{\cy}{\h}{\h}{\dep}{rgTeal}
+ \node[font=\sffamily\scriptsize,text=rgInk,inner sep=.7pt,fill=white] at ({\cx+.10},{\cy+\h/2+.53*\dep+.17}){$\sz^2\!\times\!\ch$};}
+\foreach \a/\b in {L0/L1,L1/L2,L2/L3,L3/R3}{\draw[rgflow] (\a-E)--(\b-W);}
+\foreach \lv/\x/\y/\src in {0/14.81/3.83/R1,1/12.62/2.79/R2,2/10.53/1.79/R3}{
+ \node[rgplus] (sum\lv) at (\x,\y){$+$};
+ \draw[rgflow] (\src-E)--(sum\lv.south);
+ \draw[rgflow] (sum\lv.east)--(R\lv-W);
+ \draw[rgcode] (L\lv-E)--(sum\lv.west);}
+\node[rgspec,anchor=west] at (0,.15){Each stored tensor is marked $H^2\times C$ ($H=W$). Nearest-neighbor resampling changes spatial size between levels.};
+\end{tikzpicture}

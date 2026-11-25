@@ -7,8 +7,8 @@ Two network architectures recur in the ReGAE family. An \emph{encoder} maps a sa
 
 \begin{figure*}[t]
   \centering
-  \input{figures/architecture}
-  \caption{Two ways to use the ReGAE denoiser. Top: the decoder takes a changing state and a fixed code from the encoder. Bottom: an unconditional denoiser takes only the changing state. In the Pandora experiment this state is a window of patch codes and the denoiser serves as the gencoder. Both loops feed the prediction back as the next state.}
+  \resizebox{.99\textwidth}{!}{\input{figures/architecture}}
+  \caption{Two ways to use the ReGAE denoiser. Left: the decoder takes a changing state and a fixed code from the encoder. Right: an unconditional denoiser takes only the changing state. In the Pandora experiment this state is a window of patch codes and the denoiser serves as the gencoder. Both loops feed the prediction back as the next state.}
   \label{fig:architecture}
 \end{figure*}
 
@@ -26,7 +26,7 @@ Starting from noise asks the decoder to generate a reconstruction from the code.
  y_0=P(\widehat x),\qquad y_{k+1}=D_\theta(y_k,z).
  \label{eq:family-regeneration}
 \end{equation}
-The encoder need not run again: the damage changes the state while the reference code stays fixed. How much damage the decoder can repair depends on the learned map; Appendix~\ref{sec:geometry-notes} gives a sufficient local condition.
+The encoder need not run again: the damage changes the state while the reference code stays fixed. This gives a precise sense in which a code can act as a \emph{program}. Holding the decoder weights fixed, each $z$ selects an update rule $T_z(u)=D_\theta(u,z)$. Running that program means applying $T_z$ to the state at hand, including a damaged one. The code is a tensor of numerical inputs; its meaning comes from the trained decoder that reads it. How much damage the decoder can repair depends on the learned map; Appendix~\ref{sec:geometry-notes} gives a sufficient local condition.
 
 The decoder predicts its next state directly. Its update can equivalently be written as a displacement:
 \begin{equation}
@@ -88,7 +88,7 @@ This is the \emph{meta-modeling} step: the training targets are observations of 
 
 \begin{figure*}[t]
   \centering
-  \input{figures/representation-model}
+  \resizebox{.99\textwidth}{!}{\input{figures/representation-model}}
   \caption{The bottleneck is where the second model observes the first. We arrange the encoder's codes at their source locations to make training windows; the gencoder learns to predict the codes the encoder produces for the next view. At sampling time the decoder renders each predicted code as an image patch. The final video sampler repeats updates in code space and calls the decoder once per patch.}
   \label{fig:representation-model}
 \end{figure*}

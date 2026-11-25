@@ -1,58 +1,34 @@
-% General ReGAE family; full-width TikZ fragment.
-% Requires \usepackage{tikz} and \usetikzlibrary{arrows.meta}.
-\begin{tikzpicture}[
-  x=1cm,y=1cm,
-  font=\sffamily\footnotesize,
-  >={Latex[length=2mm,width=1.35mm]},
-  box/.style={draw=black!45,rounded corners=2pt,line width=.55pt,
-              fill=black!3,align=center,minimum height=.65cm,inner sep=3pt},
-  net/.style={box,draw=blue!55!black,fill=blue!7},
-  flow/.style={->,line width=.75pt,draw=black!75},
-  feedback/.style={->,line width=.85pt,draw=blue!55!black},
-  note/.style={font=\sffamily\scriptsize,text=black!70,align=center}
-]
-% A latent tensor conditions repeated, shape-preserving denoising.
-\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,2.65)
-  {Conditional ReGAE};
-\node[box,text width=2.1cm] (reference) at (1.1,1.9)
-  {Input $x$};
-\node[net,text width=2.1cm] (encoder) at (4.2,1.9)
-  {encoder $E_{\phi}$};
-\node[box,text width=2.1cm] (latent) at (8.2,1.9)
-  {Latent tensor $z$};
-\node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-c) at (1.1,.68)
-  {Noise or\\damaged state};
-\node[box,text width=2.1cm] (state-c) at (4.2,.68)
-  {Input state $u_k$};
-\node[net,text width=2.8cm] (denoise-c) at (8.2,.68)
-  {denoiser $D_{\theta}$\\{\scriptsize Pandora role: decoder}};
-\node[box,text width=2.1cm] (next-c) at (12.7,.68)
-  {Next state $u_{k+1}$};
-\draw[flow] (reference)--(encoder);
-\draw[flow] (encoder)--(latent);
-\draw[flow] (latent)--node[note,right]{conditions}(denoise-c);
-\draw[flow] (noise-c)--(state-c);
-\draw[flow] (state-c)--(denoise-c);
-\draw[flow] (denoise-c)--(next-c);
-\draw[feedback] (next-c.south)--(12.7,-.05)
-  --node[note,fill=white,inner sep=2pt]{repeat}(4.2,-.05)--(state-c.south);
-\draw[black!15,line width=.5pt] (-.1,-.52)--(14.0,-.52);
-% The same recurrent construction can omit the encoder and conditioning code.
-\node[anchor=west,font=\sffamily\bfseries\small] at (-.1,-.9)
-  {Unconditional ReGAE};
-\node[box,text width=2.1cm,font=\sffamily\scriptsize] (noise-u) at (1.1,-1.6)
-  {Noise or\\damaged state};
-\node[box,text width=2.1cm] (state-u) at (4.2,-1.6)
-  {Input state $u_k$};
-\node[net,text width=2.8cm] (denoise-u) at (8.2,-1.6)
-  {denoiser $D_{\psi}$\\{\scriptsize Pandora role: gencoder}};
-\node[box,text width=2.1cm] (next-u) at (12.7,-1.6)
-  {Next state $u_{k+1}$};
-\draw[flow] (noise-u)--(state-u);
-\draw[flow] (state-u)--(denoise-u);
-\draw[flow] (denoise-u)--(next-u);
-\draw[feedback] (next-u.south)--(12.7,-2.3)
-  --node[note,fill=white,inner sep=2pt]{repeat}(4.2,-2.3)--(state-u.south);
-\node[note] at (7.0,-2.9)
-  {The updated state has the same shape as the input state.};
+% Side-by-side recurrent machines: learned modules, state tensors, and fixed program.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
+\input{figures/tensor-styles}
+\node[rghead] at (0,3.70) {A\quad Conditional: a code selects the update rule};
+\node[rghead] at (8.88,3.70) {B\quad Unconditional: one rule acts on the state};
+\draw[rgMuted!27] (8.52,.03)--(8.52,3.82);
+\rgvolume{sample}{.55}{2.56}{.72}{.72}{.12}{rgTeal}
+\node[rgspec,below=2pt] at (sample-S){sample $x$};
+\node[rgnet,minimum width=1.55cm] (enc) at (3.15,2.58){encoder $E_\phi$};
+\rgvolume{code}{5.17}{2.58}{.95}{.22}{.22}{rgAmber}
+\node[rgspec,anchor=west,text=rgAmber] at (5.98,2.58) {fixed code $z$};
+\draw[rgflow] (sample-E)--(enc.west);
+\draw[rgcode] (enc.east)--(code-W);
+\rgvolume{u}{.55}{1.20}{.72}{.72}{.12}{rgTeal}
+\node[rgspec,below=2pt] at (u-S){state $u_k$};
+\node[rgnet,minimum width=2.05cm] (dec) at (5.17,1.21){denoiser $D_\theta$};
+\rgvolume{v}{7.43}{1.21}{.72}{.72}{.12}{rgTeal}
+\node[rgspec,below=2pt] at (v-S){$u_{k+1}$};
+\draw[rgcode] (code-S)--(dec.north);
+\draw[rgflow] (u-E)--(dec.west);
+\draw[rgflow] (dec.east)--(v-W);
+\draw[rgflow] (v-E)--(8.06,1.24)--(8.06,.25)--(.03,.25)--(.03,1.20)--(u-W);
+\node[rgspec,fill=white,inner xsep=3pt] at (4.0,.25){repeat with the same $z$};
+\rgvolume{q}{9.57}{1.21}{.72}{.72}{.23}{rgTeal}
+\node[rgspec,below=2pt] at (q-S){state $s_k$};
+\node[rgnet,minimum width=2.18cm] (unc) at (12.73,1.21){denoiser $D_\psi$};
+\rgvolume{r}{15.72}{1.21}{.72}{.72}{.23}{rgTeal}
+\node[rgspec,below=2pt] at (r-S){$s_{k+1}$};
+\draw[rgflow] (q-E)--(unc.west);
+\draw[rgflow] (unc.east)--(r-W);
+\node[align=left,anchor=west,text=rgMuted,font=\sffamily\footnotesize] at (9.01,2.58){No external program $z$. In Pandora, the state itself\\is a spatial window of encoder responses.};
+\draw[rgflow] (r-E)--(16.48,1.27)--(16.48,.25)--(8.94,.25)--(8.94,1.21)--(q-W);
+\node[rgspec,fill=white,inner xsep=3pt] at (12.71,.25){repeat on the predicted state};
 \end{tikzpicture}

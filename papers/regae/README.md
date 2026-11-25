@@ -2,15 +2,23 @@
 
 **Regenerative Autoencoders: Recursive Modeling through Reusable Denoising**
 
-Version 0.6, November 18, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
+Version 0.7, November 25, 2026. Prepared for author review and eventual arXiv publication. This is not an arXiv submission or a claim of acceptance at CVPR.
 
-- [Read the revised PDF](regae-draft-v0.6.pdf)
-- [Download the revised LaTeX source bundle](regae-draft-v0.6-source.zip)
+- [Read the revised PDF](regae-draft-v0.7.pdf)
+- [Download the revised LaTeX source bundle](regae-draft-v0.7-source.zip)
 - [Sliding-tile galaxy illustration](https://github.com/magnux/neural_pandoras_cluster/blob/main/papers/regae/previews/galaxy-puzzle-v0.5.1.png)
 - [Representation-modeling schematic](figures/representation-model.tex)
+- [Encoder and U-shaped denoiser diagrams](figures/notebook-architecture.tex)
+- [Internal block diagrams](figures/notebook-block.tex)
 - [Main LaTeX source](main.tex)
 - [References](references.bib)
-- Previous versions: [v0.5.1 PDF](regae-draft-v0.5.1.pdf) and [v0.5.1 sources](regae-draft-v0.5.1-source.zip); [v0.5 PDF](regae-draft-v0.5.pdf) and [v0.5 sources](regae-draft-v0.5-source.zip); [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+- Previous versions: [v0.6 PDF](regae-draft-v0.6.pdf) and [v0.6 sources](regae-draft-v0.6-source.zip); [v0.5.1 PDF](regae-draft-v0.5.1.pdf) and [v0.5.1 sources](regae-draft-v0.5.1-source.zip); [v0.5 PDF](regae-draft-v0.5.pdf) and [v0.5 sources](regae-draft-v0.5-source.zip); [v0.4.1 PDF](regae-draft-v0.4.1.pdf) and [v0.4.1 sources](regae-draft-v0.4.1-source.zip); [v0.4 PDF](regae-draft-v0.4.pdf) and [v0.4 sources](regae-draft-v0.4-source.zip); [v0.3.1 PDF](regae-draft-v0.3.1.pdf) and [v0.3.1 sources](regae-draft-v0.3.1-source.zip); [v0.3 PDF](regae-draft-v0.3.pdf) and [v0.3 sources](regae-draft-v0.3-source.zip); [v0.2 PDF](regae-draft-v0.2.pdf) and [v0.2 sources](regae-draft-v0.2-source.zip); [v0.1 PDF](regae-draft-v0.1.pdf) and [v0.1 sources](regae-draft-v0.1-source.zip)
+
+## Changes in version 0.7
+
+The discussion treats a patch code as a program for the learned decoder: fixing the code selects an update rule for the reconstruction. It asks what is specified by the encoder, the per-patch code, and the shared decoder, and how changing those choices might change the balance between fidelity to an individual patch and synthesis from shared patterns. These are design choices, not comparisons tested in the archived run.
+
+The paper now separates the reduction from 3,072 input coordinates to 256 latent coordinates from the cost of storing either tensor at a given precision. An alternative code for the latents, or a codec for the complete mosaic, would be a separate result. Revised diagrams trace tensor shapes through the encoder and the denoiser, including the projected additive skips in a U-shaped pass.
 
 ## Changes in version 0.6
 
@@ -76,7 +84,7 @@ The output is `main.pdf`. Alternatively, `make` builds and copies it to the vers
 
 No training or image-generation experiment was run for this revision. The archived setup uses 256-dimensional codes and a 17,644 × 13,422 source image (236.8 MP); those values describe this proof of concept, not the family. Existing video behavior remains author-reported until the saved media are incorporated. The early exponential-gate instability remains an anecdote whose recordings were not retained.
 
-For review: does the motivation lead naturally to reconstruction? Is it clear why the gencoder models the encoder at its bottleneck and what that tells us about the first model’s behavior? Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
+For review: is it clear how a fixed code changes the decoder’s update rule, what the gencoder can learn by observing those codes, and what the 12:1 coordinate count does and does not establish? Existing stills and video excerpts can then support the qualitative discussion without new experiments. The author list and affiliations still await confirmation; no coauthors or affiliation were inferred.
 
 NVD is reserved for its own manuscript, and the broader intelligence-as-compression argument for the companion essay.
 
@@ -84,7 +92,7 @@ NVD is reserved for its own manuscript, and the broader intelligence-as-compress
 
 The sliding-tile puzzle uses an original AI-generated illustration of a spiral galaxy (`figures/galaxy-art.jpg`). It is neither a JWST observation nor a ReGAE output. The TikZ source (`figures/galaxy-puzzle.tex`) cuts one image into squares and places them without rotation. Starting from a solved 4 × 4 board with the bottom-right square empty, moving the vacancy left, up, right, up, left, then down gives the arrangement in the paper.
 
-`figures/architecture.tex` is an explanatory TikZ diagram of the general family, revised to show recurrence in both variants. It is not experimental evidence. `figures/representation-model.tex` is a code-grounded schematic of the Pandora composition, showing separate learned parameters and state reuse. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
+`figures/architecture.tex` illustrates recurrent state updates with and without an encoder-derived code. Its arrows denote computational steps. Tensor faces represent spatial dimensions and depth represents channels; sizes are labeled rather than drawn to scale. `figures/representation-model.tex` is a code-grounded schematic of the Pandora composition, showing separate learned parameters and state reuse. `figures/time-fields.tex` is a constructed TikZ comparison of time-conditioned and time-unconditioned fields; its contours, arrows, and trajectories are illustrative, not measured. The PNG plots are unchanged bytes extracted from saved outputs of `notebooks/main_v2.ipynb`:
 
 | File | Zero-based notebook cell | SHA-256 |
 | --- | --- | --- |

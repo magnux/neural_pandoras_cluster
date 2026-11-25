@@ -1,0 +1,32 @@
+% Shared visual language for the notebook schematics. Included inside tikzpicture.
+\definecolor{rgInk}{HTML}{19323B}
+\definecolor{rgMuted}{HTML}{50666B}
+\definecolor{rgTeal}{HTML}{147779}
+\definecolor{rgAmber}{HTML}{A75629}
+\definecolor{rgViolet}{HTML}{646179}
+\tikzset{
+  rgflow/.style={draw=rgTeal!92!black,line width=.76pt,-{Latex[length=1.7mm,width=1.2mm]}},
+  rgcode/.style={draw=rgAmber,line width=.76pt,-{Latex[length=1.7mm,width=1.2mm]}},
+  rgdata/.style={draw=rgMuted,densely dashed,line width=.7pt,-{Latex[length=1.7mm,width=1.2mm]}},
+  rgnet/.style={draw=rgTeal!85!black,fill=rgTeal!8,line width=.60pt,minimum height=.64cm,inner xsep=5pt,align=center,text=rgInk},
+  rgspec/.style={font=\sffamily\scriptsize,text=rgMuted,align=center,inner sep=1.2pt},
+  rghead/.style={anchor=west,font=\sffamily\bfseries\small,text=rgInk,inner sep=0pt},
+  rgtag/.style={font=\sffamily\bfseries\footnotesize,text=rgInk,align=center},
+  rgplus/.style={draw=rgAmber,fill=white,circle,font=\sffamily\footnotesize,minimum size=.32cm,inner sep=.1pt,text=rgAmber,line width=.6pt}
+}
+% #1 anchor name, #2/#3 front-face center, #4/#5 width/height, #6 depth, #7 base color.
+% West/east/north/south named coordinates allow precise diagram wiring.
+\def\rgvolume#1#2#3#4#5#6#7{%
+  \begin{scope}[shift={(#2,#3)}]
+    \path[draw=#7!83!black,fill=#7!22,line width=.55pt,line join=round]
+      ({-#4/2},{#5/2}) -- ++(#6,{.53*#6}) -- ++(#4,0) -- ++({-#6},{-.53*#6}) -- cycle;
+    \path[draw=#7!83!black,fill=#7!47,line width=.55pt,line join=round]
+      ({#4/2},{-#5/2}) -- ++(#6,{.53*#6}) -- ++(0,#5) -- ++({-#6},{-.53*#6}) -- cycle;
+    \path[draw=#7!83!black,fill=#7!11,line width=.55pt,line join=round]
+      ({-#4/2},{-#5/2}) rectangle ({#4/2},{#5/2});
+    \coordinate (#1-W) at ({-#4/2},0);
+    \coordinate (#1-E) at ({#4/2+#6},{.265*#6});
+    \coordinate (#1-S) at (0,{-#5/2});
+    \coordinate (#1-N) at (0,{#5/2+.53*#6});
+    \coordinate (#1-C) at (0,0);
+  \end{scope}}

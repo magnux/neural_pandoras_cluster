@@ -1,0 +1,21 @@
+% Internal branches of the v2 convolution block; optional functions are not always active together.
+\begin{tikzpicture}[x=1cm,y=1cm,font=\sffamily\footnotesize]
+\input{figures/tensor-styles}
+\node[rghead] at (0,3.15){The shared convolution block};
+\node[rgspec,anchor=west] at (5.10,3.15){The two summands are learned transformations of the same feature map $W$.};
+\node[rgnet,minimum width=2.08cm] (w) at (1.13,1.64){$3\times3$ conv\\$+\,P$ (if used)};
+\draw[rgflow] (w.east)--(2.80,1.64)--(2.80,2.47)--(5.57,2.47);
+\node[rgnet,minimum width=2.34cm] (linear) at (6.75,2.47){$1\times1$ projection};
+\node[rgnet,minimum width=2.15cm] (a) at (4.12,.91){normalize$^*$\\code affine$^*$};
+\node[rgnet,minimum width=2.15cm] (b) at (7.12,.91){attention$^*$\\$+$ residual};
+\node[rgnet,minimum width=2.37cm] (c) at (10.22,.91){$1\times1$, GELU, $1\times1$};
+\node[rgnet,minimum width=2.03cm] (d) at (13.04,.91){code gain$^*$};
+\node[rgplus] (sum) at (15.11,1.64){$+$};
+\draw[rgflow] (2.80,1.64)--(2.80,.91)--(a.west);
+\draw[rgflow] (a.east)--(b.west);\draw[rgflow] (b.east)--(c.west);\draw[rgflow] (c.east)--(d.west);
+\draw[rgflow] (d.east)--(15.11,.91)--(sum.south);
+\draw[rgflow] (linear.east)--(15.11,2.47)--(sum.north);
+\draw[rgflow] (sum.east)--(16.41,1.64);
+\node[rgspec,above] at (2.67,1.68){$W$};
+\node[rgspec,anchor=west] at (0,.03){$^*$Optional by block type. A conditioned block uses its own stage slice of $z$; ordinary attention blocks have no external code input.};
+\end{tikzpicture}
